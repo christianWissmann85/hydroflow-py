@@ -1,5 +1,5 @@
 [project]
-name = "hydroflow"
+name = "hydroflow-py"
 version = "0.1.0"
 description = "The Python library for water engineering — from Excel to elegant code."
 readme = "README.md"
@@ -41,11 +41,14 @@ dev = [
     "ruff>=0.9",
     "mypy>=1.13",
 ]
-all = ["hydroflow[plot,dev]"]
+all = ["hydroflow-py[plot,dev]"]
 
 [build-system]
-requires = ["uv_build>=0.8.15,<0.9.0"]
-build-backend = "uv_build"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hydroflow"]
 
 # ── Ruff ──────────────────────────────────────────────────────────────
 [tool.ruff]
