@@ -94,6 +94,13 @@ def friction_factor(
     -----
     Uses Swamee-Jain (1976) as initial guess, then 3 iterations of
     Colebrook-White for precision (error < 0.01%).
+
+    Examples
+    --------
+    >>> from hydroflow.pressure import friction_factor
+    >>> f = friction_factor(reynolds=100000, roughness=0.045e-3, diameter=0.3)
+    >>> 0.01 < f < 0.03
+    True
     """
     Re = reynolds
     if Re <= 0:
@@ -167,6 +174,14 @@ def darcy_weisbach(
     Returns
     -------
     PipeLossResult
+
+    Examples
+    --------
+    >>> import hydroflow as hf
+    >>> hf.set_units("metric")
+    >>> result = hf.darcy_weisbach(flow=0.05, diameter=0.3, length=100.0)
+    >>> f"{result.head_loss:.3f}"
+    '0.141'
     """
     Q_si = to_si(flow, "flow")
     D_si = to_si(diameter, "length")
@@ -221,6 +236,14 @@ def hazen_williams(
     Notes
     -----
     SI form: h_f = 10.67 * Q^1.852 * L / (C^1.852 * D^4.87)
+
+    Examples
+    --------
+    >>> import hydroflow as hf
+    >>> hf.set_units("metric")
+    >>> hf_val = hf.hazen_williams(flow=0.05, diameter=0.3, length=100.0, C="pvc")
+    >>> hf_val > 0
+    True
     """
     Q_si = to_si(flow, "flow")
     D_si = to_si(diameter, "length")
@@ -265,6 +288,14 @@ def minor_loss(
     -------
     float
         Head loss (active length units).
+
+    Examples
+    --------
+    >>> import hydroflow as hf
+    >>> hf.set_units("metric")
+    >>> hm = hf.minor_loss(velocity=2.0, K="90_elbow")
+    >>> f"{hm:.4f}"
+    '0.1835'
     """
     V_si = to_si(velocity, "velocity")
 
@@ -329,6 +360,14 @@ def hydraulic_jump(
     References
     ----------
     Belanger, J.B. (1828). Essai sur la solution numerique.
+
+    Examples
+    --------
+    >>> import hydroflow as hf
+    >>> hf.set_units("metric")
+    >>> jump = hf.hydraulic_jump(flow=1.544, upstream_depth=0.3, width=1.0)
+    >>> f"{jump.sequent_depth:.3f}"
+    '1.132'
     """
     Q_si = to_si(flow, "flow")
     y1 = to_si(upstream_depth, "length")

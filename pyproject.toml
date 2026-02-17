@@ -27,6 +27,12 @@ dependencies = [
     "scipy>=1.10",
 ]
 
+[project.urls]
+Homepage = "https://github.com/christianWissmann85/hydroflow-py"
+Repository = "https://github.com/christianWissmann85/hydroflow-py"
+Issues = "https://github.com/christianWissmann85/hydroflow-py/issues"
+Changelog = "https://github.com/christianWissmann85/hydroflow-py/releases"
+
 [project.optional-dependencies]
 plot = ["matplotlib>=3.6"]
 dev = [

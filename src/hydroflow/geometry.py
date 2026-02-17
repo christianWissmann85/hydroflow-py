@@ -66,6 +66,15 @@ def trapezoidal(y: float, b: float, z: float) -> SectionProperties:
     z : float
         Side slope as horizontal:vertical (dimensionless).  Must be >= 0.
         ``z = 0`` is a rectangular channel; ``z = 2`` means 2H:1V.
+
+    Examples
+    --------
+    >>> from hydroflow.geometry import trapezoidal
+    >>> props = trapezoidal(y=1.5, b=3.0, z=2.0)
+    >>> f"{props.area:.1f}"
+    '9.0'
+    >>> f"{props.hydraulic_radius:.3f}"
+    '0.927'
     """
     _check_positive("bottom_width", b)
     _check_non_negative("side_slope", z)
@@ -109,6 +118,15 @@ def rectangular(y: float, b: float) -> SectionProperties:
         Flow depth (m).
     b : float
         Channel width (m).  Must be > 0.
+
+    Examples
+    --------
+    >>> from hydroflow.geometry import rectangular
+    >>> props = rectangular(y=2.0, b=5.0)
+    >>> props.area
+    10.0
+    >>> f"{props.hydraulic_radius:.4f}"
+    '1.1111'
     """
     _check_positive("width", b)
     _check_non_negative("depth", y)
@@ -150,6 +168,15 @@ def triangular(y: float, z: float) -> SectionProperties:
         Flow depth (m).
     z : float
         Side slope as horizontal:vertical (dimensionless).  Must be > 0.
+
+    Examples
+    --------
+    >>> from hydroflow.geometry import triangular
+    >>> props = triangular(y=1.0, z=2.0)
+    >>> props.area
+    2.0
+    >>> props.hydraulic_depth
+    0.5
     """
     _check_positive("side_slope", z)
     _check_non_negative("depth", y)
@@ -226,6 +253,15 @@ def circular(y: float, diameter: float) -> SectionProperties:
     ------
     ValueError
         If depth exceeds diameter (surcharge condition).
+
+    Examples
+    --------
+    >>> from hydroflow.geometry import circular
+    >>> props = circular(y=0.5, diameter=1.0)  # half-full 1m pipe
+    >>> f"{props.area:.4f}"
+    '0.3927'
+    >>> f"{props.hydraulic_radius:.4f}"
+    '0.2500'
     """
     _check_positive("diameter", diameter)
     _check_non_negative("depth", y)

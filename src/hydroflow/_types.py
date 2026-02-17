@@ -12,7 +12,14 @@ __all__ = [
 
 
 class FlowRegime(Enum):
-    """Classification of open-channel flow regime based on Froude number."""
+    """Classification of open-channel flow regime based on Froude number.
+
+    Examples
+    --------
+    >>> from hydroflow._types import FlowRegime
+    >>> FlowRegime.SUBCRITICAL.value
+    'subcritical'
+    """
 
     SUBCRITICAL = "subcritical"
     CRITICAL = "critical"
@@ -26,7 +33,14 @@ class FlowRegime(Enum):
 class SectionProperties:
     """Hydraulic properties of a channel cross-section.
 
-    All values are in SI (meters, m²) internally.
+    All values are in SI (meters, m^2) internally.
+
+    Examples
+    --------
+    >>> from hydroflow.geometry import rectangular
+    >>> props = rectangular(y=2.0, b=5.0)
+    >>> props.area
+    10.0
     """
 
     area: float

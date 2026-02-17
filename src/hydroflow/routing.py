@@ -129,6 +129,21 @@ class DetentionPond:
         Returns
         -------
         RoutingResult
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import hydroflow as hf
+        >>> hf.set_units("metric")
+        >>> from hydroflow.structures import RectangularWeir
+        >>> weir = RectangularWeir(length=2.0, crest=1.0)
+        >>> pond = hf.DetentionPond(
+        ...     stages=[0, 1, 2, 3], storages=[0, 10000, 25000, 45000], outlet=weir,
+        ... )
+        >>> inflow = np.array([0, 1, 3, 5, 3, 1, 0], dtype=float)
+        >>> result = pond.route(inflow, dt=600.0)
+        >>> result.peak_outflow < result.peak_inflow
+        True
         """
         # Extract inflow array and time step
         from hydroflow.hydrology import Hydrograph as _Hydrograph

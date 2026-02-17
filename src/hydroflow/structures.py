@@ -57,6 +57,14 @@ class Orifice:
     -----
     Q = Cd * A * sqrt(2 * g * H_eff)
     where H_eff = stage - invert - diameter/2  (head above centroid).
+
+    Examples
+    --------
+    >>> import hydroflow as hf
+    >>> hf.set_units("metric")
+    >>> orif = hf.Orifice(diameter=0.3, invert=0.0, Cd=0.61)
+    >>> f"{orif.discharge(stage=2.15):.3f}"
+    '0.270'
     """
 
     def __init__(
@@ -106,6 +114,14 @@ class RectangularWeir:
     Notes
     -----
     Q = Cw * L * H^(3/2),  Cw = 1.84 SI (= 3.33 imperial).
+
+    Examples
+    --------
+    >>> import hydroflow as hf
+    >>> hf.set_units("metric")
+    >>> weir = hf.RectangularWeir(length=3.0, crest=0.0, Cw=1.84)
+    >>> f"{weir.discharge(stage=0.5):.3f}"
+    '1.952'
     """
 
     def __init__(
@@ -148,6 +164,14 @@ class VNotchWeir:
     Notes
     -----
     Q = (8/15) * Cd * tan(θ/2) * sqrt(2g) * H^(5/2)
+
+    Examples
+    --------
+    >>> import hydroflow as hf
+    >>> hf.set_units("metric")
+    >>> weir = hf.VNotchWeir(angle_degrees=90.0, vertex=0.0, Cd=0.58)
+    >>> f"{weir.discharge(stage=0.3):.4f}"
+    '0.0675'
     """
 
     def __init__(
@@ -187,6 +211,14 @@ class BroadCrestedWeir:
         Crest elevation (length units).
     Cw : float
         Weir coefficient (default 1.70 for SI).
+
+    Examples
+    --------
+    >>> import hydroflow as hf
+    >>> hf.set_units("metric")
+    >>> weir = hf.BroadCrestedWeir(length=5.0, crest=0.0, Cw=1.70)
+    >>> f"{weir.discharge(stage=1.0):.2f}"
+    '8.50'
     """
 
     def __init__(
@@ -227,6 +259,14 @@ class CompositeOutlet:
     Created by adding structures together::
 
         outlet = Orifice(diameter=0.3) + RectangularWeir(length=3.0, crest=1.5)
+
+    Examples
+    --------
+    >>> import hydroflow as hf
+    >>> hf.set_units("metric")
+    >>> outlet = hf.Orifice(diameter=0.3) + hf.RectangularWeir(length=3.0, crest=1.5)
+    >>> outlet.discharge(stage=2.0) > 0
+    True
     """
 
     def __init__(self, *structures: _Structure) -> None:
@@ -314,6 +354,20 @@ class Culvert:
     References
     ----------
     FHWA HDS-5 (2012), 3rd Edition. Hydraulic Design of Highway Culverts.
+
+    Examples
+    --------
+    >>> import hydroflow as hf
+    >>> hf.set_units("metric")
+    >>> c = hf.Culvert(
+    ...     diameter=0.9, length=30.0, slope=0.01,
+    ...     roughness="concrete", inlet="square_edge",
+    ... )
+    >>> result = c.analyze(flow=1.0)
+    >>> result.headwater > 0
+    True
+    >>> result.control in ("INLET_CONTROL", "OUTLET_CONTROL")
+    True
     """
 
     def __init__(

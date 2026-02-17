@@ -40,6 +40,13 @@ def set_units(system: UnitSystem) -> None:
     Parameters
     ----------
     system : ``"metric"`` or ``"imperial"``
+
+    Examples
+    --------
+    >>> import hydroflow as hf
+    >>> hf.set_units("metric")
+    >>> hf.get_units()
+    'metric'
     """
     if system not in ("metric", "imperial"):
         msg = f"Unknown unit system: {system!r}. Use 'metric' or 'imperial'."
@@ -48,7 +55,15 @@ def set_units(system: UnitSystem) -> None:
 
 
 def get_units() -> UnitSystem:
-    """Return the current global unit system (default: ``"metric"``)."""
+    """Return the current global unit system (default: ``"metric"``).
+
+    Examples
+    --------
+    >>> import hydroflow as hf
+    >>> hf.set_units("imperial")
+    >>> hf.get_units()
+    'imperial'
+    """
     system: str = getattr(_local, "system", "metric")
     return system  # type: ignore[return-value]
 
@@ -147,42 +162,82 @@ class _Explicit(float):
 
 
 def ft(v: float) -> _Explicit:
-    """Tag a value as feet."""
+    """Tag a value as feet.
+
+    >>> import hydroflow as hf
+    >>> hf.ft(10)  # 10 feet -> used as 3.048 m internally
+    10 ft
+    """
     return _Explicit(v, "ft")
 
 
 def m(v: float) -> _Explicit:
-    """Tag a value as meters."""
+    """Tag a value as meters.
+
+    >>> import hydroflow as hf
+    >>> hf.m(5)
+    5 m
+    """
     return _Explicit(v, "m")
 
 
 def cfs(v: float) -> _Explicit:
-    """Tag a value as cubic feet per second."""
+    """Tag a value as cubic feet per second.
+
+    >>> import hydroflow as hf
+    >>> hf.cfs(100)
+    100 cfs
+    """
     return _Explicit(v, "cfs")
 
 
 def cms(v: float) -> _Explicit:
-    """Tag a value as cubic meters per second."""
+    """Tag a value as cubic meters per second.
+
+    >>> import hydroflow as hf
+    >>> hf.cms(2.5)
+    2.5 cms
+    """
     return _Explicit(v, "cms")
 
 
 def inches(v: float) -> _Explicit:
-    """Tag a value as inches."""
+    """Tag a value as inches.
+
+    >>> import hydroflow as hf
+    >>> hf.inches(6)
+    6 in
+    """
     return _Explicit(v, "in")
 
 
 def mm(v: float) -> _Explicit:
-    """Tag a value as millimeters."""
+    """Tag a value as millimeters.
+
+    >>> import hydroflow as hf
+    >>> hf.mm(150)
+    150 mm
+    """
     return _Explicit(v, "mm")
 
 
 def acres(v: float) -> _Explicit:
-    """Tag a value as acres."""
+    """Tag a value as acres.
+
+    >>> import hydroflow as hf
+    >>> hf.acres(10)
+    10 acre
+    """
     return _Explicit(v, "acre")
 
 
 def ha(v: float) -> _Explicit:
-    """Tag a value as hectares."""
+    """Tag a value as hectares.
+
+    >>> import hydroflow as hf
+    >>> hf.ha(50)
+    50 ha
+    """
     return _Explicit(v, "ha")
 
 
@@ -202,6 +257,12 @@ def to_si(value: float, quantity: str) -> float:
         The value to convert.
     quantity : str
         Physical quantity key (``"length"``, ``"flow"``, etc.).
+
+    Examples
+    --------
+    >>> set_units("imperial")
+    >>> to_si(10.0, "length")  # 10 ft -> 3.048 m
+    3.048
     """
     if isinstance(value, _Explicit):
         return float(value) * _TO_SI[value._unit]
@@ -218,6 +279,12 @@ def from_si(value_si: float, quantity: str) -> float:
         The value in SI units.
     quantity : str
         Physical quantity key (``"length"``, ``"flow"``, etc.).
+
+    Examples
+    --------
+    >>> set_units("imperial")
+    >>> from_si(3.048, "length")  # 3.048 m -> 10 ft
+    10.0
     """
     unit = _DISPLAY[get_units()][quantity]
     return value_si / _TO_SI[unit]

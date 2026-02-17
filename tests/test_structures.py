@@ -132,6 +132,41 @@ class TestCompositeOutlet:
         Q_expected = a.discharge(stage=2.0) + b.discharge(stage=2.0) + c.discharge(stage=2.0)
         assert pytest.approx(Q_expected, rel=1e-6) == Q
 
+    def test_weir_add_composite(self) -> None:
+        """Weir + CompositeOutlet should merge."""
+        orif = Orifice(diameter=0.3)
+        weir1 = RectangularWeir(length=2.0, crest=1.0)
+        weir2 = BroadCrestedWeir(length=4.0, crest=1.5)
+        combo = orif + weir1
+        merged = weir2 + combo
+        assert isinstance(merged, CompositeOutlet)
+        Q = merged.discharge(stage=2.5)
+        expected = orif.discharge(stage=2.5) + weir1.discharge(stage=2.5) + weir2.discharge(stage=2.5)
+        assert pytest.approx(expected, rel=1e-6) == Q
+
+    def test_vnotch_add_composite(self) -> None:
+        """VNotchWeir + CompositeOutlet."""
+        v = VNotchWeir(vertex=0.0)
+        combo = Orifice(diameter=0.2) + RectangularWeir(length=1.0, crest=0.5)
+        merged = v + combo
+        assert isinstance(merged, CompositeOutlet)
+
+    def test_broad_crested_discharge_si(self) -> None:
+        """Test discharge_si directly."""
+        weir = BroadCrestedWeir(length=3.0, crest=0.0, Cw=1.70)
+        Q_si = weir.discharge_si(0.5)
+        assert Q_si > 0
+
+    def test_composite_stage_discharge_curve(self) -> None:
+        """Test stage-discharge curve method."""
+        import numpy as np
+
+        outlet = Orifice(diameter=0.3) + RectangularWeir(length=2.0, crest=1.0)
+        stages = np.array([0.5, 1.0, 1.5, 2.0])
+        discharges = outlet.stage_discharge_curve_si(stages)
+        assert len(discharges) == 4
+        assert all(q >= 0 for q in discharges)
+
 
 class TestCulvert:
     def setup_method(self) -> None:

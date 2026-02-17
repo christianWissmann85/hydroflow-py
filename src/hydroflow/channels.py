@@ -166,8 +166,8 @@ class TrapezoidalChannel(_ChannelBase):
     >>> ch = hf.TrapezoidalChannel(
     ...     bottom_width=3.0, side_slope=2.0, slope=0.001, roughness="concrete"
     ... )
-    >>> ch.normal_flow(depth=1.5)  # m³/s
-    5.71...
+    >>> f"{ch.normal_flow(depth=1.5):.2f}"  # m³/s
+    '20.81'
     """
 
     def __init__(
@@ -202,6 +202,16 @@ class TrapezoidalChannel(_ChannelBase):
         """Compute discharge Q at a given depth via Manning's equation.
 
         Returns flow in the active unit system.
+
+        Examples
+        --------
+        >>> import hydroflow as hf
+        >>> hf.set_units("metric")
+        >>> ch = hf.TrapezoidalChannel(
+        ...     bottom_width=3.0, side_slope=2.0, slope=0.001, roughness="concrete"
+        ... )
+        >>> f"{ch.normal_flow(depth=1.5):.2f}"
+        '20.81'
         """
         y = to_si(depth, "length")
         A, _P, R = _trap_apr(y, self._b, self._z)
@@ -211,6 +221,17 @@ class TrapezoidalChannel(_ChannelBase):
         """Iteratively solve for normal depth at a given discharge.
 
         Returns depth in the active unit system.
+
+        Examples
+        --------
+        >>> import hydroflow as hf
+        >>> hf.set_units("metric")
+        >>> ch = hf.TrapezoidalChannel(
+        ...     bottom_width=3.0, side_slope=2.0, slope=0.001, roughness="concrete"
+        ... )
+        >>> Q = ch.normal_flow(depth=1.5)
+        >>> f"{ch.normal_depth(flow=Q):.4f}"
+        '1.5000'
         """
         Q_si = to_si(flow, "flow")
         y_si = self._find_normal_depth(Q_si)
@@ -220,13 +241,35 @@ class TrapezoidalChannel(_ChannelBase):
         """Solve for critical depth (Fr = 1) at a given discharge.
 
         Returns depth in the active unit system.
+
+        Examples
+        --------
+        >>> import hydroflow as hf
+        >>> hf.set_units("metric")
+        >>> ch = hf.TrapezoidalChannel(
+        ...     bottom_width=3.0, side_slope=2.0, slope=0.001, roughness="concrete"
+        ... )
+        >>> yc = ch.critical_depth(flow=20.81)
+        >>> yc < 1.5  # critical depth < normal depth on a mild slope
+        True
         """
         Q_si = to_si(flow, "flow")
         yc = self._find_critical_depth(Q_si)
         return from_si(yc, "length")
 
     def froude_number(self, depth: float) -> float:
-        """Froude number at given depth (dimensionless)."""
+        """Froude number at given depth (dimensionless).
+
+        Examples
+        --------
+        >>> import hydroflow as hf
+        >>> hf.set_units("metric")
+        >>> ch = hf.TrapezoidalChannel(
+        ...     bottom_width=3.0, side_slope=2.0, slope=0.001, roughness="concrete"
+        ... )
+        >>> ch.froude_number(depth=1.5) < 1.0  # subcritical on mild slope
+        True
+        """
         y = to_si(depth, "length")
         A, _P, R = _trap_apr(y, self._b, self._z)
         Q_si = _manning_flow(self._n, A, R, self._S)
@@ -259,6 +302,14 @@ class RectangularChannel(_ChannelBase):
         Longitudinal bed slope (m/m, dimensionless).
     roughness : float or str
         Manning's n coefficient, or a material name.
+
+    Examples
+    --------
+    >>> import hydroflow as hf
+    >>> hf.set_units("metric")
+    >>> ch = hf.RectangularChannel(width=5.0, slope=0.001, roughness="concrete")
+    >>> f"{ch.normal_flow(depth=2.0):.2f}"
+    '26.10'
     """
 
     def __init__(
@@ -338,6 +389,14 @@ class TriangularChannel(_ChannelBase):
         Longitudinal bed slope (m/m, dimensionless).
     roughness : float or str
         Manning's n coefficient, or a material name.
+
+    Examples
+    --------
+    >>> import hydroflow as hf
+    >>> hf.set_units("metric")
+    >>> ch = hf.TriangularChannel(side_slope=2.0, slope=0.005, roughness=0.025)
+    >>> f"{ch.normal_flow(depth=1.0):.3f}"
+    '3.308'
     """
 
     def __init__(
@@ -418,6 +477,14 @@ class CircularChannel(_ChannelBase):
         Pipe slope (m/m, dimensionless).
     roughness : float or str
         Manning's n coefficient, or a material name.
+
+    Examples
+    --------
+    >>> import hydroflow as hf
+    >>> hf.set_units("metric")
+    >>> pipe = hf.CircularChannel(diameter=0.6, slope=0.005, roughness="concrete")
+    >>> f"{pipe.full_flow_capacity():.3f}"
+    '0.434'
     """
 
     def __init__(

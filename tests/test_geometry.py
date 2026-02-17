@@ -8,7 +8,15 @@ import math
 
 import pytest
 
-from hydroflow.geometry import circular, rectangular, trapezoidal, triangular
+from hydroflow.geometry import (
+    _circ_apr,
+    _rect_apr,
+    _tri_apr,
+    circular,
+    rectangular,
+    trapezoidal,
+    triangular,
+)
 
 
 class TestTrapezoidal:
@@ -126,3 +134,56 @@ class TestCircular:
         areas = [circular(y=y, diameter=D).area for y in depths]
         for i in range(len(areas) - 1):
             assert areas[i + 1] > areas[i]
+
+
+class TestAprKernelEdgeCases:
+    """Edge cases for internal _apr kernel functions."""
+
+    def test_rect_apr_near_zero_depth(self) -> None:
+        A, _P, _R = _rect_apr(0.0, 5.0)
+        assert A == 0.0
+
+    def test_tri_apr_near_zero_depth(self) -> None:
+        A, _P, _R = _tri_apr(0.0, 2.0)
+        assert A == 0.0
+
+    def test_circ_apr_near_full(self) -> None:
+        """Near-full pipe should use full-pipe branch."""
+        A, _P, _R = _circ_apr(0.9999999, 1.0)
+        assert pytest.approx(math.pi * 0.25, rel=0.01) == A
+
+    def test_circ_apr_zero_depth(self) -> None:
+        A, _P, _R = _circ_apr(0.0, 1.0)
+        assert A == 0.0
+
+
+class TestGeometryValidation:
+    """Test validation guards in public geometry functions."""
+
+    def test_rectangular_negative_width_raises(self) -> None:
+        with pytest.raises(ValueError, match="positive"):
+            rectangular(y=1.0, b=-1.0)
+
+    def test_rectangular_zero_depth(self) -> None:
+        props = rectangular(y=0.0, b=3.0)
+        assert props.area == 0.0
+
+    def test_triangular_negative_slope_raises(self) -> None:
+        with pytest.raises(ValueError, match="positive"):
+            triangular(y=1.0, z=-1.0)
+
+    def test_triangular_zero_depth(self) -> None:
+        props = triangular(y=0.0, z=2.0)
+        assert props.area == 0.0
+
+    def test_trapezoidal_negative_width_raises(self) -> None:
+        with pytest.raises(ValueError, match="positive"):
+            trapezoidal(y=1.0, b=-1.0, z=2.0)
+
+    def test_rectangular_negative_depth_raises(self) -> None:
+        with pytest.raises(ValueError, match="non-negative"):
+            rectangular(y=-1.0, b=3.0)
+
+    def test_triangular_negative_depth_raises(self) -> None:
+        with pytest.raises(ValueError, match="non-negative"):
+            triangular(y=-1.0, z=2.0)

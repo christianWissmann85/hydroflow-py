@@ -11,7 +11,12 @@ import pytest
 
 import hydroflow as hf
 from hydroflow._types import FlowRegime
-from hydroflow.channels import _manning_flow
+from hydroflow.channels import _classify_flow, _froude, _manning_flow
+
+
+class TestFlowRegimeRepr:
+    def test_repr(self) -> None:
+        assert repr(FlowRegime.SUBCRITICAL) == "FlowRegime.SUBCRITICAL"
 
 
 class TestManningKernel:
@@ -226,3 +231,120 @@ class TestCircularChannel:
         Q = ch.normal_flow(depth=1.0)  # cfs at 1 ft depth
         y_back = ch.normal_depth(flow=Q)
         assert y_back == pytest.approx(1.0, rel=1e-4)
+
+    def test_critical_depth(self) -> None:
+        ch = hf.CircularChannel(diameter=1.0, slope=0.005, roughness="concrete")
+        Q = ch.normal_flow(depth=0.5)
+        yc = ch.critical_depth(flow=Q)
+        assert yc > 0
+        assert yc < 1.0
+
+    def test_si_params(self) -> None:
+        ch = hf.CircularChannel(diameter=1.0, slope=0.002, roughness="concrete")
+        D, S, n = ch.si_params
+        assert pytest.approx(1.0) == D
+        assert S == 0.002
+        assert n == 0.013
+
+    def test_normal_depth_surcharge_raises(self) -> None:
+        """Flow exceeding max pipe capacity raises ValueError."""
+        ch = hf.CircularChannel(diameter=0.6, slope=0.005, roughness="concrete")
+        Q_max = ch.max_flow_capacity()
+        with pytest.raises(ValueError, match=r"surcharge|exceed"):
+            ch.normal_depth(flow=Q_max * 1.5)
+
+    def test_invalid_diameter_raises(self) -> None:
+        with pytest.raises(ValueError, match="diameter"):
+            hf.CircularChannel(diameter=-1.0, slope=0.005, roughness=0.013)
+
+    def test_invalid_slope_raises(self) -> None:
+        with pytest.raises(ValueError, match="slope"):
+            hf.CircularChannel(diameter=1.0, slope=-0.005, roughness=0.013)
+
+
+class TestKernelHelpers:
+    """Test internal kernel functions for edge cases."""
+
+    def test_froude_zero_area(self) -> None:
+        assert _froude(1.0, 0.0, 1.0) == 0.0
+
+    def test_froude_zero_top_width(self) -> None:
+        assert _froude(1.0, 1.0, 0.0) == 0.0
+
+    def test_classify_critical(self) -> None:
+        assert _classify_flow(1.0) == FlowRegime.CRITICAL
+        assert _classify_flow(1.005) == FlowRegime.CRITICAL
+        assert _classify_flow(0.995) == FlowRegime.CRITICAL
+
+
+class TestRectangularChannelExtended:
+    """Additional coverage for RectangularChannel."""
+
+    def setup_method(self) -> None:
+        hf.set_units("metric")
+
+    def test_froude_and_regime(self) -> None:
+        ch = hf.RectangularChannel(width=3.0, slope=0.002, roughness=0.013)
+        fr = ch.froude_number(depth=1.0)
+        assert fr > 0
+        regime = ch.flow_regime(depth=1.0)
+        assert isinstance(regime, FlowRegime)
+
+    def test_si_params(self) -> None:
+        ch = hf.RectangularChannel(width=5.0, slope=0.001, roughness="concrete")
+        b, S, n = ch.si_params
+        assert b == pytest.approx(5.0)
+        assert S == 0.001
+        assert n == 0.013
+
+    def test_invalid_width_raises(self) -> None:
+        with pytest.raises(ValueError, match="width"):
+            hf.RectangularChannel(width=-1.0, slope=0.001, roughness=0.013)
+
+    def test_invalid_slope_raises(self) -> None:
+        with pytest.raises(ValueError, match="slope"):
+            hf.RectangularChannel(width=3.0, slope=-0.001, roughness=0.013)
+
+
+class TestTriangularChannelExtended:
+    """Additional coverage for TriangularChannel."""
+
+    def setup_method(self) -> None:
+        hf.set_units("metric")
+
+    def test_froude_and_regime(self) -> None:
+        ch = hf.TriangularChannel(side_slope=2.0, slope=0.005, roughness=0.025)
+        fr = ch.froude_number(depth=0.5)
+        assert fr > 0
+        regime = ch.flow_regime(depth=0.5)
+        assert isinstance(regime, FlowRegime)
+
+    def test_si_params(self) -> None:
+        ch = hf.TriangularChannel(side_slope=1.5, slope=0.01, roughness=0.025)
+        z, S, n = ch.si_params
+        assert z == 1.5
+        assert S == 0.01
+        assert n == 0.025
+
+    def test_invalid_side_slope_raises(self) -> None:
+        with pytest.raises(ValueError, match="side_slope"):
+            hf.TriangularChannel(side_slope=-1.0, slope=0.01, roughness=0.025)
+
+    def test_invalid_slope_raises(self) -> None:
+        with pytest.raises(ValueError, match="slope"):
+            hf.TriangularChannel(side_slope=2.0, slope=-0.01, roughness=0.025)
+
+
+class TestTrapezoidalChannelExtended:
+    """Additional coverage for TrapezoidalChannel validation."""
+
+    def setup_method(self) -> None:
+        hf.set_units("metric")
+
+    def test_invalid_bottom_width_raises(self) -> None:
+        with pytest.raises(ValueError, match="bottom_width"):
+            hf.TrapezoidalChannel(bottom_width=-1.0, side_slope=2.0, slope=0.001, roughness=0.013)
+
+    def test_invalid_side_slope_raises(self) -> None:
+        with pytest.raises(ValueError, match="side_slope"):
+            hf.TrapezoidalChannel(bottom_width=3.0, side_slope=-1.0, slope=0.001, roughness=0.013)

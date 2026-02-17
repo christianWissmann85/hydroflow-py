@@ -100,8 +100,10 @@ def scs_runoff_depth(
 
     Examples
     --------
-    >>> scs_runoff_depth(rainfall=127.0, curve_number=75)  # mm
-    62.2...
+    >>> import hydroflow as hf
+    >>> hf.set_units("metric")
+    >>> f"{scs_runoff_depth(rainfall=127.0, curve_number=75):.1f}"  # mm
+    '62.2'
     """
     if curve_number <= 0 or curve_number > 100:
         msg = f"Curve number must be in (0, 100], got {curve_number}"
@@ -187,8 +189,8 @@ def rational_method(
     --------
     >>> import hydroflow as hf
     >>> hf.set_units("metric")
-    >>> rational_method(C=0.70, intensity=88.9, area=hf.ha(6.07))
-    1.049...
+    >>> f"{rational_method(C=0.70, intensity=88.9, area=hf.ha(6.07)):.3f}"
+    '1.049'
     """
     if C < 0 or C > 1:
         msg = f"Runoff coefficient C must be in [0, 1], got {C}"
@@ -240,6 +242,16 @@ def time_of_concentration(
     - Kirpich (1940): Tc = 0.0078 * L^0.77 * S_pct^(-0.385) [L in ft, Tc in min]
     - NRCS Lag: Lag = L^0.8 * (S_ret+1)^0.7 / (1140 * Y^0.5) [hours]
     - FAA: Tc = 1.8 * (1.1 - C) * L^0.5 / S_pct^(1/3) [L in ft, Tc in min]
+
+    Examples
+    --------
+    >>> import hydroflow as hf
+    >>> hf.set_units("metric")
+    >>> Tc = hf.time_of_concentration(
+    ...     method="kirpich", length=hf.ft(3000), slope=0.02
+    ... )
+    >>> f"{Tc:.1f}"
+    '2.8'
     """
     # Convert length to feet for all formulas (they were derived in imperial)
     L_si = to_si(length, "length")
@@ -296,6 +308,14 @@ class Watershed:
         Time of concentration in **minutes**.
     slope : float
         Average watershed slope (fraction), optional.
+
+    Examples
+    --------
+    >>> import hydroflow as hf
+    >>> hf.set_units("metric")
+    >>> ws = hf.Watershed(area=hf.ha(50), curve_number=80, time_of_concentration=30.0)
+    >>> f"{ws.area_km2:.1f}"
+    '0.5'
     """
 
     area: float
@@ -330,6 +350,14 @@ class DesignStorm:
     Create via :meth:`from_table` or :meth:`from_scs_type2`.
 
     All depths stored internally in meters.
+
+    Examples
+    --------
+    >>> import hydroflow as hf
+    >>> hf.set_units("metric")
+    >>> storm = hf.DesignStorm.from_scs_type2(total_depth=100.0)
+    >>> f"{storm.total_depth_si * 1000:.0f}"
+    '100'
     """
 
     def __init__(
@@ -463,6 +491,16 @@ def scs_unit_hydrograph(
     References
     ----------
     NRCS NEH Part 630, Chapter 16.
+
+    Examples
+    --------
+    >>> import hydroflow as hf
+    >>> hf.set_units("metric")
+    >>> ws = hf.Watershed(area=hf.ha(50), curve_number=80, time_of_concentration=30.0)
+    >>> storm = hf.DesignStorm.from_scs_type2(total_depth=100.0)
+    >>> hydrograph = hf.scs_unit_hydrograph(ws, storm)
+    >>> hydrograph.peak_flow > 0
+    True
     """
     Tc_min = watershed.time_of_concentration
 
