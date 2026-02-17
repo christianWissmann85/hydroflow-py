@@ -1,0 +1,93 @@
+[project]
+name = "hydroflow"
+version = "0.1.0"
+description = "The Python library for water engineering — from Excel to elegant code."
+readme = "README.md"
+license = "MIT"
+authors = [
+    { name = "Christian Wissmann", email = "christian.wissmann85@gmail.com" },
+]
+requires-python = ">=3.11"
+keywords = ["hydraulics", "hydrology", "water-engineering", "civil-engineering", "manning"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Hydrology",
+    "Typing :: Typed",
+]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+]
+
+[project.optional-dependencies]
+plot = ["matplotlib>=3.6"]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.9",
+    "mypy>=1.13",
+]
+all = ["hydroflow[plot,dev]"]
+
+[build-system]
+requires = ["uv_build>=0.8.15,<0.9.0"]
+build-backend = "uv_build"
+
+# ── Ruff ──────────────────────────────────────────────────────────────
+[tool.ruff]
+target-version = "py311"
+line-length = 99
+
+[tool.ruff.lint]
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "I",     # isort
+    "N",     # pep8-naming
+    "UP",    # pyupgrade
+    "B",     # flake8-bugbear
+    "SIM",   # flake8-simplify
+    "TCH",   # flake8-type-checking
+    "RUF",   # ruff-specific rules
+]
+ignore = [
+    "E501",   # line length handled by formatter
+    "N802",   # allow uppercase in function names (engineering: Q_si, etc.)
+    "N803",   # allow uppercase in argument names (engineering: Q, A, R, D)
+    "N806",   # allow uppercase in variable names (engineering: Q, A, R, D)
+    "RUF022", # allow manual __all__ ordering (grouped by category)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["hydroflow"]
+
+# ── Mypy ──────────────────────────────────────────────────────────────
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = ["numpy.*", "scipy.*", "matplotlib.*"]
+ignore_missing_imports = true
+
+# ── Pytest ────────────────────────────────────────────────────────────
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
