@@ -22,7 +22,7 @@
 │   Manning's · Rational Method · SCS · Culverts · Pond Routing   │
 ├─────────────────────────────────────────────────────────────────┤
 │                    FOUNDATION                                   │
-│        Units · Materials DB · Channel Geometry · Utilities      │
+│    Units · Materials DB · Standards · Config · Geometry · Utils  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -34,87 +34,77 @@ Each layer builds on the ones below it, but every layer is independently useful.
 
 **Goal:** A pip-installable library that replaces the most common hydraulic engineering Excel spreadsheets. If we ship nothing else, this alone fills a gap that thousands of engineers need.
 
-### 1.1 Foundation (Build First)
+### 1.1 Foundation (Complete)
 
 The cross-cutting infrastructure that every layer depends on.
 
-| Module | Description | Priority |
-|--------|-------------|:--------:|
-| `hydroflow.units` | Unit system (metric/imperial) with transparent conversion. Engineers in the US use feet/cfs/acres; everyone else uses metric. Must be seamless, never surprising. | P0 |
-| `hydroflow.materials` | Lookup database for roughness coefficients, pipe materials, soil properties. Engineers should type `"concrete"` not `n=0.013`. Stored as embedded data (JSON/TOML), zero external dependencies. | P0 |
-| `hydroflow.geometry` | Channel cross-section geometry engine — area, wetted perimeter, hydraulic radius, top width for: trapezoidal, rectangular, circular, triangular, and custom shapes. This is the mathematical foundation for all open-channel calculations. | P0 |
+| Module | Description | Status |
+|--------|-------------|:------:|
+| `hydroflow.units` | Unit system (metric/imperial) with transparent conversion. Thread-safe via `set_units()`/`get_units()`. Explicit tags (`ft()`, `cfs()`) override global setting. | Done |
+| `hydroflow.geometry` | Channel cross-section geometry engine — area, wetted perimeter, hydraulic radius, top width for: trapezoidal, rectangular, circular, triangular shapes. | Done |
+| `hydroflow.materials` | **Intelligent Material Database.** 30+ materials, 32 fittings, 19 aliases. JSON data files loaded lazily via `importlib.resources`. Context-aware lookups: `get_material("concrete", condition="old_rough")`. Full property access: Manning's n, Hazen-Williams C, Darcy epsilon, with ranges and source citations. | Done |
+| `hydroflow.materials` (standards) | **Standards & Config Engine.** Jurisdiction-specific overrides via `set_standard("din_en")`. Project-level overrides via `load_project_config()` with `hydroflow.toml` auto-discovery. Merge chain: *Library Default < Regional Standard < Project Config < Runtime Override*. Thread-safe, cached. | Done |
 
-### 1.2 Layer 0: Core Calculations
+### 1.2 Layer 0: Core Calculations (Complete)
 
-Ordered by priority — build top-to-bottom.
+#### Tier 1: Open Channel Flow (Done)
 
-#### Tier 1: Open Channel Flow (Build First)
+| Function / Class | What It Does | Status |
+|-----------------|--------------|:------:|
+| `TrapezoidalChannel` | Manning's equation for trapezoidal channels | Done |
+| `RectangularChannel` | Manning's equation for rectangular channels | Done |
+| `CircularChannel` | Manning's equation for partially-full circular pipes | Done |
+| `TriangularChannel` | Manning's equation for V-shaped channels | Done |
+| `.normal_depth()` | Iterative solve for depth given flow | Done |
+| `.normal_flow()` | Direct solve for flow given depth | Done |
+| `.critical_depth()` | Solve for critical depth | Done |
+| `.flow_regime()` | Froude number + subcritical/critical/supercritical classification | Done |
+| `.full_flow_capacity()` | Max capacity of a closed conduit (circular) | Done |
 
-These are the most fundamental calculations in hydraulic engineering. Every other module builds on these.
+#### Tier 2: Hydrology — Rainfall & Runoff (Done)
 
-| Function / Class | What It Does | Engineering Context |
-|-----------------|--------------|-------------------|
-| `TrapezoidalChannel` | Manning's equation for trapezoidal channels | Roadside ditches, irrigation canals |
-| `RectangularChannel` | Manning's equation for rectangular channels | Concrete-lined channels, box culverts |
-| `CircularChannel` | Manning's equation for partially-full circular pipes | Storm sewers, sanitary sewers |
-| `TriangularChannel` | Manning's equation for V-shaped channels | Roadside gutters, small swales |
-| `.normal_depth()` | Iterative solve for depth given flow | "How deep will the water be?" |
-| `.normal_flow()` | Direct solve for flow given depth | "How much can this channel carry?" |
-| `.critical_depth()` | Solve for critical depth | Flow regime transitions |
-| `.flow_regime()` | Froude number + subcritical/critical/supercritical classification | Every hydraulic design check |
-| `.full_flow_capacity()` | Max capacity of a closed conduit (circular) | "Will this pipe handle the storm?" |
+| Function / Class | What It Does | Status |
+|-----------------|--------------|:------:|
+| `DesignStorm` | Construct a design storm hyetograph from IDF data | Done |
+| `DesignStorm.from_table()` | Build storm from manual IDF table input | Done |
+| `time_of_concentration()` | Compute Tc using Kirpich, FAA, or NRCS Lag methods | Done |
+| `rational_method()` | Peak flow from the Rational Method (Q = CiA) | Done |
+| `Watershed` | Container for watershed properties (area, CN, Tc, slope) | Done |
+| `scs_unit_hydrograph()` | SCS dimensionless unit hydrograph method | Done |
+| `scs_runoff_depth()` | SCS CN method for runoff depth from rainfall depth | Done |
 
-**Acceptance criteria:** An engineer can size a drainage channel in 5 lines of Python, with correct results matching published reference tables (e.g., Chow's Open-Channel Hydraulics).
+#### Tier 3: Hydraulic Structures (Done)
 
-#### Tier 2: Hydrology — Rainfall & Runoff
+| Function / Class | What It Does | Status |
+|-----------------|--------------|:------:|
+| `Culvert` | Full culvert analysis: inlet control, outlet control, auto-selects governing | Done |
+| `.performance_curve()` | Headwater vs. discharge relationship | Done |
+| `Orifice` | Orifice equation (sharp-edged, submerged, free) | Done |
+| `RectangularWeir` | Sharp-crested rectangular weir | Done |
+| `VNotchWeir` | V-notch (triangular) weir | Done |
+| `BroadCrestedWeir` | Broad-crested weir | Done |
+| `CompositeOutlet` | Combined outlet structures via `+` operator | Done |
+| `DetentionPond` | Stage-storage-discharge + Modified Puls routing | Done |
 
-| Function / Class | What It Does | Engineering Context |
-|-----------------|--------------|-------------------|
-| `DesignStorm` | Construct a design storm hyetograph from IDF data | "What rainfall do I design for?" |
-| `DesignStorm.from_table()` | Build storm from manual IDF table input | When you have local data |
-| `time_of_concentration()` | Compute Tc using Kirpich, FAA, NRCS Lag, or Kerby-Kirpich methods | Critical parameter for all runoff calcs |
-| `rational_method()` | Peak flow from the Rational Method (Q = CiA) | Small catchments (<80 ha), the most-used formula in civil engineering |
-| `Watershed` | Container for watershed properties (area, CN, Tc, slope) | Reusable across methods |
-| `scs_unit_hydrograph()` | SCS dimensionless unit hydrograph method | Medium catchments, standard practice |
-| `scs_curve_number_runoff()` | SCS CN method for runoff depth from rainfall depth | Pairs with unit hydrograph |
+#### Tier 4: Pipe Sizing & Energy (Done)
 
-**Acceptance criteria:** Reproduce the SCS TR-55 example problems exactly. An engineer can go from rainfall data to a runoff hydrograph in <10 lines.
-
-#### Tier 3: Hydraulic Structures
-
-| Function / Class | What It Does | Engineering Context |
-|-----------------|--------------|-------------------|
-| `Culvert` | Full culvert analysis: inlet control, outlet control, auto-selects governing | Road crossings — designed daily |
-| `.performance_curve()` | Headwater vs. discharge relationship | Standard deliverable for culvert design |
-| `Orifice` | Orifice equation (sharp-edged, submerged, free) | Pond outlet structures |
-| `Weir` | Sharp-crested, broad-crested, V-notch, Cipolletti weirs | Pond outlets, flow measurement |
-| `DetentionPond` | Stage-storage-discharge + Modified Puls routing | Required for every land development project |
-| `.route()` | Inflow hydrograph → outflow hydrograph via Modified Puls | The core detention calculation |
-
-**Acceptance criteria:** Detention pond routing matches hand-calculated Modified Puls results. The `Orifice + Weir` outlet combination produces correct composite stage-discharge curves.
-
-#### Tier 4: Pipe Sizing & Energy
-
-| Function / Class | What It Does | Engineering Context |
-|-----------------|--------------|-------------------|
-| `darcy_weisbach()` | Head loss in pressurized pipes | Pressure system design |
-| `hazen_williams()` | Empirical head loss (common in US water distribution) | Municipal pipe sizing |
-| `minor_losses()` | Head loss from fittings, bends, valves | Detailed pipe system design |
-| `energy_equation()` | Bernoulli's equation between two points | General hydraulic analysis |
-| `momentum_equation()` | Momentum balance for hydraulic jumps, forces on bends | Structural design of channels |
-| `hydraulic_jump()` | Sequent depth, energy loss, jump location | Channel design downstream of structures |
-
-**Acceptance criteria:** Darcy-Weisbach and Hazen-Williams match standard reference calculations. Hydraulic jump sequent depths match Belanger equation.
+| Function / Class | What It Does | Status |
+|-----------------|--------------|:------:|
+| `darcy_weisbach()` | Head loss in pressurized pipes (Colebrook-White friction factor) | Done |
+| `hazen_williams()` | Empirical head loss (common in US water distribution) | Done |
+| `minor_loss()` | Head loss from fittings, bends, valves (string lookup or numeric K) | Done |
+| `hydraulic_jump()` | Sequent depth, energy loss, Froude numbers (Belanger equation) | Done |
 
 ### Phase 1 Deliverables
 
 - [ ] `pip install hydroflow` works (published to PyPI)
-- [ ] All Tier 1-4 functions implemented with tests
-- [ ] Every function has a docstring with an engineering example
+- [x] All Tier 1-4 functions implemented with tests
+- [x] Every function has a docstring with an engineering example
 - [ ] README with "Getting Started" showing a real engineering workflow
-- [ ] Unit conversion works transparently (metric/imperial)
-- [ ] Material/roughness lookup works for common materials
-- [ ] Test coverage >90% for all calculation modules
+- [x] Unit conversion works transparently (metric/imperial)
+- [x] Material/roughness lookup works for common materials
+- [x] Standards & config hierarchy operational (base < standard < project)
+- [x] Test coverage >90% for all calculation modules (266 tests passing)
 
 ---
 
@@ -239,26 +229,79 @@ These are the most fundamental calculations in hydraulic engineering. Every othe
 | `hydroflow.report.export` | Export to PDF (via weasyprint or similar), HTML (standalone), Markdown (for Git). |
 | `hydroflow.report.templates` | Pre-built templates for common deliverables: drainage analysis, culvert design, detention pond sizing. |
 
+### Professional Reporting Enhancements
+
+| Feature | Description |
+|---------|-------------|
+| Firm Branding Engine | Configuration to inject company logo, disclaimer, and professional seal/stamp placeholders into every PDF. |
+| Audit Trail | Reports include a "Run Metadata" footer (HydroFlow version, timestamp, user, input file hash) for legal traceability. |
+| Jurisdiction Toggle | Report templates auto-switch terminology based on active standard (e.g., "Catch Basin" vs. "Gully", "Detention" vs. "Attenuation"). Shares TOML profiles with the Standards system. |
+
 ### Polish & Ecosystem
 
 | Task | Description |
 |------|-------------|
 | **Documentation site** | Sphinx/MkDocs site with tutorials, API reference, engineering background. |
 | **Cookbook** | Recipe-style examples: "How to size a culvert", "How to design a detention pond", "How to optimize a pipe network". |
-| **QGIS plugin** | Optional: read/write hydroflow models from QGIS (stretch goal). |
-| **Web dashboard** | Optional: Streamlit/Panel app for non-coders (stretch goal). |
 
 ### Phase 5 Deliverables
 
 - [ ] Generate PDF reports from any analysis
 - [ ] At least 3 report templates (drainage, culvert, detention)
+- [ ] Firm branding configuration (logo, disclaimer, seal)
+- [ ] Audit trail metadata in all generated reports
+- [ ] Jurisdiction-aware terminology in report templates
 - [ ] Full documentation site live
 - [ ] Cookbook with 10+ real-world examples
-- [ ] v1.0 release 🎉
+- [ ] v1.0 release
+
+---
+
+## Integrations — CAD, GIS & BIM (Optional Extras)
+
+**Goal:** Break the silo. Engineers work in maps (GIS) and drawings (CAD). HydroFlow must read their geometry and write back their results.
+
+These are optional extras (`pip install hydroflow-py[gis]`, `pip install hydroflow-py[cad]`) woven into existing phases as they mature. They are **not** blocking for any core phase.
+
+### Modules
+
+| Module | Description | Stack | Phase |
+|--------|-------------|-------|:-----:|
+| `hydroflow.cad` | **DXF Parsing.** Extract pipe network geometry from CAD layers. Read/write DXF files for Civil 3D / Microstation interop. | `ezdxf` (MIT, lightweight) | 3-4 |
+| `hydroflow.gis` | **Bi-directional GIS.** Read Shapefiles/GeoJSON into `WaterNetwork`/`Watershed` objects. Write results as styled GeoJSON for QGIS visualization. | `geopandas` + `pyogrio` | 3-5 |
+| `hydroflow.cad` (LandXML) | **LandXML.** Import/export surfaces and pipe networks using the civil engineering industry standard (Civil 3D / 12d compatible). | `lxml` + custom parser | 4-5 |
+| `hydroflow.bim` | **IFC Hooks (Stretch).** Basic export of pipes/manholes to IFC format for Revit/BIM coordination. | `ifcopenshell` | 5+ |
+
+### Separate Projects
+
+| Project | Description |
+|---------|-------------|
+| `hydroflow-qgis` | Official QGIS plugin. GUI panel to run HydroFlow models directly on map layers. Separate repo to avoid coupling. |
+
+### Integration Deliverables
+
+- [ ] DXF → Model converter: "Select CAD file, select layer names, get a runnable model"
+- [ ] GeoJSON export: pipes color-coded by velocity, catchments by CN
+- [ ] Civil 3D workflow via LandXML round-trip
+- [ ] QGIS plugin with Processing framework integration
 
 ---
 
 ## Cross-Cutting Principles (All Phases)
+
+### Configuration Hierarchy (The "Override Law")
+
+All physical constants (roughness, loss coefficients, safety factors) resolve using this waterfall priority:
+
+```
+1. Explicit Runtime Override    Pipe(..., roughness=0.015)           ✅ Done
+2. Project Config               hf.load_project_config("proj.toml") ✅ Done
+3. Firm Config                  ~/.hydroflow/firm_config.toml        Planned
+4. Regional Standard            hf.set_standard("din_en")            ✅ Done
+5. Library Default              Chow/EPA base values                 ✅ Done
+```
+
+This system is implemented in `hydroflow.materials` using thread-local state (mirrors `set_units()`/`get_units()`). The merge engine uses recursive deep merge — overlays can add/modify but never remove properties (additive only).
 
 ### API Design
 
@@ -272,7 +315,7 @@ These are the most fundamental calculations in hydraulic engineering. Every othe
 
 - **Type hints everywhere** (mypy strict). An LLM reading our code should understand every function signature without guessing.
 - **Tests for every calculation** against published reference values (textbook problems, government manuals).
-- **Zero required dependencies beyond numpy/scipy** for Layer 0. Solver backends (WNTR, PySWMM, FloPy) are optional extras: `pip install hydroflow[epanet]`.
+- **Zero required dependencies beyond numpy/scipy** for Layer 0. Solver backends (WNTR, PySWMM, FloPy) are optional extras: `pip install hydroflow-py[epanet]`.
 - **Linting with ruff**, formatting consistent, no dead code.
 
 ### Documentation
@@ -295,6 +338,9 @@ hydroflow[swmm]           → + pyswmm
 hydroflow[groundwater]    → + flopy
 hydroflow[optimize]       → + scipy (already included), SALib (optional)
 hydroflow[report]         → + weasyprint or fpdf2, jinja2
+hydroflow[cad]            → + ezdxf
+hydroflow[gis]            → + geopandas, pyogrio, shapely
+hydroflow[bim]            → + ifcopenshell
 hydroflow[all]            → everything
 ```
 
@@ -302,13 +348,19 @@ Layer 0 works with ZERO heavy dependencies. This is critical — "dependency hel
 
 ---
 
+## Excel Importer (Discussion Point)
+
+Excel importer for company-measured coefficients / values for concrete flumes, weirs, etc. Could generate custom JSON files that feed into the project config hierarchy. Natural extension of `load_project_config()`.
+
+---
+
 ## Definition of Done: v1.0
 
 HydroFlow v1.0 is ready when an engineer can:
 
-1. **Size a drainage channel** using Manning's equation → Layer 0
-2. **Generate a runoff hydrograph** from a design storm → Layer 0
-3. **Design a detention pond** with Modified Puls routing → Layer 0
+1. **Size a drainage channel** using Manning's equation → Layer 0 ✅
+2. **Generate a runoff hydrograph** from a design storm → Layer 0 ✅
+3. **Design a detention pond** with Modified Puls routing → Layer 0 ✅
 4. **Analyze a pipe network** for pressure and velocity → Layer 1
 5. **Optimize pipe diameters** for minimum cost → Layer 3
 6. **Chain rainfall → drainage → analysis** in one script → Layer 2
