@@ -2,6 +2,7 @@
 
 **The Python library for water engineering — from Excel to elegant code.**
 
+[![PyPI](https://img.shields.io/pypi/v/hydroflow-py)](https://pypi.org/project/hydroflow-py/)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Type Checked: mypy](https://img.shields.io/badge/type%20checked-mypy%20strict-blue.svg)](https://mypy-lang.org/)
@@ -12,7 +13,7 @@ HydroFlow replaces the Excel spreadsheets and $20k/year proprietary software tha
 ## Quick Start
 
 ```bash
-pip install hydroflow
+pip install hydroflow-py
 ```
 
 ```python
@@ -29,6 +30,24 @@ print(channel.flow_regime(depth=1.5))      # FlowRegime.SUBCRITICAL
 ```
 
 No memorizing coefficients. Type `"concrete"` instead of `n=0.013`.
+
+## See It In Action
+
+**[`examples/layer0.py`](examples/layer0.py)** — Seven real-world engineering workflows in a single runnable script. Every one of these used to require a separate Excel spreadsheet or proprietary software license:
+
+| # | Workflow | What It Solves |
+|---|----------|---------------|
+| 1 | **Drainage Ditch Design** | Size a concrete-lined trapezoidal channel for a 25-year storm |
+| 2 | **Storm Sewer Pipe Check** | Will a 600mm pipe handle 0.4 m³/s without surcharging? |
+| 3 | **Textbook Verification** | Reproduce Chow (1959) Example 6-1 in imperial units |
+| 4 | **Subdivision Hydrology** | SCS method: rainfall → runoff → unit hydrograph → peak flow |
+| 5 | **Detention Pond Routing** | Route a hydrograph through a pond with orifice + weir outlet |
+| 6 | **Culvert Sizing** | FHWA HDS-5 analysis with inlet/outlet control comparison |
+| 7 | **Water Main Head Loss** | Darcy-Weisbach vs. Hazen-Williams with fitting minor losses |
+
+```bash
+uv run python examples/layer0.py
+```
 
 ## Works in Imperial Too
 
@@ -109,7 +128,7 @@ hf.resolve_roughness("concrte")
 # ValueError: Unknown material 'concrte'. Did you mean: 'concrete', 'concrete_smooth', 'concrete_rough'?
 ```
 
-30+ materials from Chow (1959) and FHWA HEC-22 built in.
+30+ materials from Chow (1959) and FHWA HEC-22 built in. Regional standards (DIN/EN, etc.), firm-wide defaults, and per-project overrides are all supported via the [config hierarchy](ROADMAP.md#configuration-hierarchy-the-override-law).
 
 ## Explicit Units When You Need Them
 
@@ -129,8 +148,8 @@ HydroFlow is built in layers — each independently useful:
 
 | Layer | Status | What It Does |
 |-------|:------:|-------------|
-| **Foundation** | ✅ Done | Units, materials, geometry engine |
-| **L0: Core Calculations** | 🔨 Building | Manning's, SCS hydrology, culverts, pond routing |
+| **Foundation** | ✅ Done | Units, materials, geometry, standards, config hierarchy |
+| **L0: Core Calculations** | ✅ Done | Manning's, SCS hydrology, culverts, pond routing, pressure pipes |
 | **L1: Solver Wrappers** | 📋 Planned | Clean APIs over EPANET, SWMM, MODFLOW |
 | **L2: Workflows** | 📋 Planned | Chain models: rain → drainage → river |
 | **L3: AI & Optimization** | 📋 Planned | Parameter sweeps, calibration, LLM-ready schemas |
@@ -147,12 +166,12 @@ See [ROADMAP.md](ROADMAP.md) for the full plan.
 
 ```bash
 # Clone and install with dev dependencies
-git clone https://github.com/your-username/hydroflow.git
-cd hydroflow
+git clone https://github.com/christianWissmann85/hydroflow-py.git
+cd hydroflow-py
 uv sync --all-extras
 
 # Run tests, linting, type checking
-uv run pytest
+uv run pytest                     # 276 tests
 uv run ruff check src/ tests/
 uv run mypy src/hydroflow/
 ```

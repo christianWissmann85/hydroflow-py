@@ -43,7 +43,7 @@ The cross-cutting infrastructure that every layer depends on.
 | `hydroflow.units` | Unit system (metric/imperial) with transparent conversion. Thread-safe via `set_units()`/`get_units()`. Explicit tags (`ft()`, `cfs()`) override global setting. | Done |
 | `hydroflow.geometry` | Channel cross-section geometry engine — area, wetted perimeter, hydraulic radius, top width for: trapezoidal, rectangular, circular, triangular shapes. | Done |
 | `hydroflow.materials` | **Intelligent Material Database.** 30+ materials, 32 fittings, 19 aliases. JSON data files loaded lazily via `importlib.resources`. Context-aware lookups: `get_material("concrete", condition="old_rough")`. Full property access: Manning's n, Hazen-Williams C, Darcy epsilon, with ranges and source citations. | Done |
-| `hydroflow.materials` (standards) | **Standards & Config Engine.** Jurisdiction-specific overrides via `set_standard("din_en")`. Project-level overrides via `load_project_config()` with `hydroflow.toml` auto-discovery. Merge chain: *Library Default < Regional Standard < Project Config < Runtime Override*. Thread-safe, cached. | Done |
+| `hydroflow.materials` (standards) | **Standards & Config Engine.** Jurisdiction-specific overrides via `set_standard("din_en")`. Project-level overrides via `load_project_config()` with `hydroflow.toml` auto-discovery. Firm-wide defaults via `~/.hydroflow/firm_config.toml` (auto-loaded). Full merge chain: *Library Default < Regional Standard < Firm Config < Project Config < Runtime Override*. Thread-safe, cached. | Done |
 
 ### 1.2 Layer 0: Core Calculations (Complete)
 
@@ -97,14 +97,14 @@ The cross-cutting infrastructure that every layer depends on.
 
 ### Phase 1 Deliverables
 
-- [ ] `pip install hydroflow` works (published to PyPI)
+- [x] `pip install hydroflow-py` works (published to PyPI via GitHub Actions)
 - [x] All Tier 1-4 functions implemented with tests
 - [x] Every function has a docstring with an engineering example
-- [ ] README with "Getting Started" showing a real engineering workflow
+- [x] README with "Getting Started" + 7-workflow example script ([`examples/layer0.py`](examples/layer0.py))
 - [x] Unit conversion works transparently (metric/imperial)
 - [x] Material/roughness lookup works for common materials
-- [x] Standards & config hierarchy operational (base < standard < project)
-- [x] Test coverage >90% for all calculation modules (266 tests passing)
+- [x] Standards & config hierarchy operational (base < standard < firm < project)
+- [x] Test coverage >90% for all calculation modules (276 tests passing)
 
 ---
 
@@ -296,7 +296,7 @@ All physical constants (roughness, loss coefficients, safety factors) resolve us
 ```
 1. Explicit Runtime Override    Pipe(..., roughness=0.015)           ✅ Done
 2. Project Config               hf.load_project_config("proj.toml") ✅ Done
-3. Firm Config                  ~/.hydroflow/firm_config.toml        Planned
+3. Firm Config                  ~/.hydroflow/firm_config.toml        ✅ Done
 4. Regional Standard            hf.set_standard("din_en")            ✅ Done
 5. Library Default              Chow/EPA base values                 ✅ Done
 ```

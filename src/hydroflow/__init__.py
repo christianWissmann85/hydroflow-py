@@ -160,7 +160,7 @@ __all__ = [
     "HAZEN_WILLIAMS_C",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 
 # ── Lazy proxy for deprecated dict constants ─────────────────────────
