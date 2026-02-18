@@ -86,8 +86,10 @@ else:
     print("\nSystem is healthy — all pressures and velocities OK!")
 
 # %% Plot the network
+import matplotlib.pyplot as plt
+
 from hydroflow.network.plot import plot_network
 
 ax = plot_network(net, title="Tank Filling System")
-print("\nPlot generated!")
-# plt.show()  # Uncomment for interactive display
+print("\nPlot generated — close the window to exit.")
+plt.show()

@@ -139,5 +139,5 @@ plot_network(
 
 fig.suptitle("Pump Scheduling: Pressure Comparison", fontsize=14)
 fig.tight_layout()
-print("\nSide-by-side plot generated!")
-# plt.show()  # Uncomment for interactive display
+print("\nSide-by-side plot generated — close the window to exit.")
+plt.show()

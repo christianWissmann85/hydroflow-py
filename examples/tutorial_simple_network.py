@@ -73,6 +73,8 @@ else:
     print("\nAll clear — network is healthy!")
 
 # %% Plot the network colored by pressure
+import matplotlib.pyplot as plt
+
 from hydroflow.network.plot import plot_network
 
 # Extract pressures at the first timestep as a dict
@@ -84,5 +86,5 @@ ax = plot_network(
     node_cmap="RdYlGn",
     title="Pressure at Hour 0 (m)",
 )
-print("\nPlot generated! (Close window to continue)")
-# plt.show()  # Uncomment for interactive display
+print("\nPlot generated — close the window to exit.")
+plt.show()
