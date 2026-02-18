@@ -104,13 +104,15 @@ The cross-cutting infrastructure that every layer depends on.
 - [x] Unit conversion works transparently (metric/imperial)
 - [x] Material/roughness lookup works for common materials
 - [x] Standards & config hierarchy operational (base < standard < firm < project)
-- [x] Test coverage >90% for all calculation modules (276 tests passing)
+- [x] Test coverage >90% for all calculation modules (276 tests passing, v0.1.1)
 
 ---
 
-## Phase 2: Layer 1a — EPANET Wrapper (Pipe Networks)
+## Phase 2: Layer 1a — EPANET Wrapper (Pipe Networks) (Complete)
 
-**Goal:** Build a clean, engineer-friendly API over EPANET for water distribution network analysis. Use WNTR or epanet-python as the backend engine — we don't rewrite the solver, we build a better cockpit.
+**Goal:** Build a clean, engineer-friendly API over EPANET for water distribution network analysis. Use WNTR as the backend engine — we don't rewrite the solver, we build a better cockpit.
+
+**Architecture:** `hydroflow.network` (our layer) → `wntr` (engine) → EPANET 2.2 C library (solver)
 
 ### Why EPANET First
 
@@ -119,34 +121,99 @@ The cross-cutting infrastructure that every layer depends on.
 - WNTR exists as a Python backend (we wrap it, not replace it)
 - Water distribution is a universal need
 
-### Key Modules
+### 2.0 Source Reorganization (Done)
 
-| Module | Description |
-|--------|-------------|
-| `hydroflow.network.WaterNetwork` | The main model class. Add junctions, reservoirs, tanks, pipes, pumps, valves using clean methods. |
-| `hydroflow.network.components` | Component classes (Junction, Pipe, Pump, Tank, etc.) with sensible defaults, validation, and material auto-lookup. |
-| `hydroflow.network.rules` | Human-readable control rule DSL. `"tank.level < 3 AND time.hour >= 22"` instead of 6 lines of object composition. |
-| `hydroflow.network.simulate` | Simulation runner. Immutable — never mutates the model. Returns a `NetworkResults` DataFrame container. |
-| `hydroflow.network.results` | `NetworkResults` class: `.pressures`, `.flows`, `.velocities` as DataFrames. `.health_check()` for instant diagnostics. |
-| `hydroflow.network.io` | Import/export: `.inp` files, GeoJSON, CSV. Interop with existing EPANET models. |
-| `hydroflow.network.errors` | Error translation layer. Maps EPANET error codes to human-readable messages with fix suggestions. |
+Layer 0 calculation modules moved into `hydroflow.core/` to make room for `network/`, `stormwater/`, `groundwater/` in future phases. Public API (`import hydroflow as hf`) unchanged — all re-exports updated.
 
-### Key Design Decisions
+### 2.1 Error Foundation + Time Parsing (Done)
+
+| Module | Description | Status |
+|--------|-------------|:------:|
+| `hydroflow.network.errors` | `NetworkError` → `TopologyError`, `ValidationError`, `SimulationError`, `ComponentError`. Each carries a `suggestion` attribute with fix hints. | Done |
+| `hydroflow.network._time` | `parse_duration("24h") → 86400.0`, `format_time(3600) → "01:00"`. Supports `"24h"`, `"15min"`, `"30s"`, `"3 days"`. | Done |
+
+### 2.2 Components — Data Model (Done)
+
+| Module | Description | Status |
+|--------|-------------|:------:|
+| `hydroflow.network.components` | Frozen dataclasses: `Junction`, `Reservoir`, `Tank`, `Pipe`, `Pump`, `Valve` (PRV). Validates at construction. Material integration: `Pipe(roughness="ductile_iron")` auto-resolves to Hazen-Williams C=140 via `get_material()`. Each has `.to_wntr_kwargs()`. | Done |
+
+### 2.3 WaterNetwork Model (Done)
+
+| Module | Description | Status |
+|--------|-------------|:------:|
+| `hydroflow.network.model` | Central `WaterNetwork` class. `add_junction()`, `add_reservoir()`, `add_tank()`, `add_pipe()`, `add_pump()`, `add_valve()`. Immediate topology validation (referencing a nonexistent node raises `TopologyError`). `validate()` checks for disconnected nodes, missing sources, dead-end warnings. Private `_to_wntr()` creates a fresh WNTR model every call (immutable simulation). | Done |
+
+### 2.4 Simulation + Results (Done)
+
+| Module | Description | Status |
+|--------|-------------|:------:|
+| `hydroflow.network.simulate` | `simulate(network, duration="24h", timestep="1h", backend="epanet")`. WNTR lazy-imported at call time. Supports `"epanet"` (faster) or `"wntr"` (PDD support) backends. Solver errors → `SimulationError` with explanation. | Done |
+| `hydroflow.network.results` | `NetworkResults` with `.pressures`, `.flows`, `.velocities`, `.heads`, `.demands` DataFrames (TimedeltaIndex). `.health_check()` flags negative pressures, excessive velocities. | Done |
+
+### 2.5 I/O — INP Import/Export (Done)
+
+| Module | Description | Status |
+|--------|-------------|:------:|
+| `hydroflow.network.io` | `read_inp(path) → WaterNetwork`, `write_inp(network, path)`, `from_wntr(wn) → WaterNetwork`. Leverages WNTR's INP parser. Round-trip fidelity. `from_wntr()` is public for existing WNTR workflows. | Done |
+
+### 2.6 Controls + Polish (Done)
+
+| Module | Description | Status |
+|--------|-------------|:------:|
+| `hydroflow.network.controls` | `TimeControl` (status change at clock time) and `ConditionalControl` (status change on node condition). Structured Python objects. | Done |
+| `hydroflow.network.__init__` | Full exports of all public classes. | Done |
+| `hydroflow.__init__` | Lazy `hf.WaterNetwork` — works with or without WNTR installed. | Done |
+| `examples/network_basics.py` | Tutorial: build, simulate, analyze a pipe network. | Done |
+
+### Key Design Decisions (Implemented)
 
 - **Backend:** WNTR's `EpanetSimulator` for speed, with option to use `WNTRSimulator` for pressure-dependent demand.
-- **Immutability:** `simulate()` never mutates the model. No more pickle hacks for parameter sweeps.
+- **Immutability:** `simulate()` never mutates the model. `_to_wntr()` creates a fresh model every call.
 - **Time handling:** `"24h"`, `"15min"`, `"7 days"` — never raw seconds.
-- **Validation:** Errors at construction time, not at simulation time. If you add a pipe to a nonexistent node, it fails immediately with a clear message.
+- **Validation:** Errors at construction time, not at simulation time. If you add a pipe to a nonexistent node, it fails immediately with a clear message and fix suggestion.
+- **Materials integration:** `Pipe(roughness="ductile_iron")` auto-resolves via HydroFlow's material database.
+- **Zero coupling:** Core Layer 0 has zero WNTR dependency. WNTR is lazy-imported only in `simulate()`, `io`, and `_to_wntr()`.
 
 ### Phase 2 Deliverables
 
-- [ ] Create, simulate, and analyze pipe networks from scratch in Python
-- [ ] Import existing `.inp` files and enhance them
-- [ ] Health check identifies common design issues automatically
-- [ ] Error messages explain problems and suggest fixes
-- [ ] Results as labeled DataFrames with time-axis
+- [x] Create, simulate, and analyze pipe networks from scratch in Python
+- [x] Import existing `.inp` files and enhance them
+- [x] Health check identifies common design issues automatically
+- [x] Error messages explain problems and suggest fixes
+- [x] Results as labeled DataFrames with TimedeltaIndex
+- [x] Source reorganized: `core/` for Layer 0, `network/` for Layer 1a
+- [x] 147 new network tests (423 total, up from 276)
+- [x] All ruff + mypy clean
+- [ ] Network visualization (matplotlib, basic but functional) — *deferred to Phase 2.5*
+- [ ] Tutorial notebooks (simple network, tank filling, pump scheduling) — *deferred to Phase 2.5*
+
+---
+
+## Phase 2.5: Network Polish & Documentation
+
+**Goal:** Visual and educational polish for the network package — matplotlib plotting and guided tutorial notebooks. Low-risk, high-impact work that makes Phase 2 shine before moving on to new solvers.
+
+### Visualization
+
+| Deliverable | Description |
+|-------------|-------------|
+| `hydroflow.network.plot` | Basic matplotlib network visualization. Nodes colored by pressure, links colored/sized by velocity or flow. Leverages WNTR's graph layout or simple spring layout. Optional dependency (`hydroflow-py[plot]`). |
+
+### Tutorials
+
+| Deliverable | Description |
+|-------------|-------------|
+| Notebook: Simple Network | Build a 3-node gravity-fed network, simulate, inspect pressures and flows. |
+| Notebook: Tank Filling | Tank fills from a reservoir, drains via demand. Demonstrate time-series results and health check. |
+| Notebook: Pump Scheduling | Use `TimeControl` and `ConditionalControl` to schedule a pump. Show before/after comparison. |
+
+### Phase 2.5 Deliverables
+
 - [ ] Network visualization (matplotlib, basic but functional)
-- [ ] At least 3 tutorial notebooks (simple network, tank filling, pump scheduling)
+- [ ] Tutorial notebook: simple network
+- [ ] Tutorial notebook: tank filling
+- [ ] Tutorial notebook: pump scheduling
 
 ---
 
@@ -361,7 +428,7 @@ HydroFlow v1.0 is ready when an engineer can:
 1. **Size a drainage channel** using Manning's equation → Layer 0 ✅
 2. **Generate a runoff hydrograph** from a design storm → Layer 0 ✅
 3. **Design a detention pond** with Modified Puls routing → Layer 0 ✅
-4. **Analyze a pipe network** for pressure and velocity → Layer 1
+4. **Analyze a pipe network** for pressure and velocity → Layer 1 ✅
 5. **Optimize pipe diameters** for minimum cost → Layer 3
 6. **Chain rainfall → drainage → analysis** in one script → Layer 2
 7. **Generate a PDF report** of the entire analysis → Layer 4

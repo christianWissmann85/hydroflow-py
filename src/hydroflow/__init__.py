@@ -158,6 +158,8 @@ __all__ = [
     "HydraulicJumpResult",
     "MINOR_LOSS_K",
     "HAZEN_WILLIAMS_C",
+    # Network (lazy)
+    "WaterNetwork",
 ]
 
 __version__ = "0.1.1"
@@ -172,5 +174,9 @@ def __getattr__(name: str) -> Any:
         from hydroflow import materials as _mat
 
         return getattr(_mat, name)
+    if name == "WaterNetwork":
+        from hydroflow.network.model import WaterNetwork
+
+        return WaterNetwork
     msg = f"module {__name__!r} has no attribute {name!r}"
     raise AttributeError(msg)
