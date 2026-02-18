@@ -262,11 +262,11 @@ class TestLegacyDicts:
         assert hf.MINOR_LOSS_K["90_elbow"] == 0.9
 
     def test_pressure_module_hazen_williams(self) -> None:
-        from hydroflow.pressure import HAZEN_WILLIAMS_C
+        from hydroflow.core.pressure import HAZEN_WILLIAMS_C
 
         assert HAZEN_WILLIAMS_C["pvc"] == 150
 
     def test_pressure_module_minor_loss(self) -> None:
-        from hydroflow.pressure import MINOR_LOSS_K
+        from hydroflow.core.pressure import MINOR_LOSS_K
 
         assert MINOR_LOSS_K["90_elbow"] == 0.9

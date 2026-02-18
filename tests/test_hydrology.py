@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 
 import hydroflow as hf
-from hydroflow.hydrology import (
+from hydroflow.core.hydrology import (
     DesignStorm,
     Watershed,
     _scs_runoff_incremental,

@@ -11,7 +11,7 @@ import pytest
 
 import hydroflow as hf
 from hydroflow._types import FlowRegime
-from hydroflow.channels import _classify_flow, _froude, _manning_flow
+from hydroflow.core.channels import _classify_flow, _froude, _manning_flow
 
 
 class TestFlowRegimeRepr:

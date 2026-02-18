@@ -8,8 +8,8 @@ import numpy as np
 import pytest
 
 import hydroflow as hf
-from hydroflow.routing import DetentionPond
-from hydroflow.structures import RectangularWeir
+from hydroflow.core.routing import DetentionPond
+from hydroflow.core.structures import RectangularWeir
 
 
 class TestDetentionPond:

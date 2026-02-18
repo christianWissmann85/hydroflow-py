@@ -16,18 +16,15 @@ from hydroflow._types import (
 )
 
 # ── Layer 0: Channels ────────────────────────────────────────────────
-from hydroflow.channels import (
+from hydroflow.core.channels import (
     CircularChannel,
     RectangularChannel,
     TrapezoidalChannel,
     TriangularChannel,
 )
 
-# ── Geometry (advanced usage) ─────────────────────────────────────────
-from hydroflow.geometry import circular, rectangular, trapezoidal, triangular
-
 # ── Hydrology ────────────────────────────────────────────────────────
-from hydroflow.hydrology import (
+from hydroflow.core.hydrology import (
     DesignStorm,
     Hydrograph,
     Watershed,
@@ -36,6 +33,33 @@ from hydroflow.hydrology import (
     scs_unit_hydrograph,
     time_of_concentration,
 )
+
+# ── Pressure pipe flow ──────────────────────────────────────────────
+from hydroflow.core.pressure import (
+    HydraulicJumpResult,
+    PipeLossResult,
+    darcy_weisbach,
+    hazen_williams,
+    hydraulic_jump,
+    minor_loss,
+)
+
+# ── Routing ─────────────────────────────────────────────────────────
+from hydroflow.core.routing import DetentionPond, RoutingResult
+
+# ── Structures ──────────────────────────────────────────────────────
+from hydroflow.core.structures import (
+    BroadCrestedWeir,
+    CompositeOutlet,
+    Culvert,
+    CulvertResult,
+    Orifice,
+    RectangularWeir,
+    VNotchWeir,
+)
+
+# ── Geometry (advanced usage) ─────────────────────────────────────────
+from hydroflow.geometry import circular, rectangular, trapezoidal, triangular
 
 # ── Materials (functions load lazily from JSON) ──────────────────────
 from hydroflow.materials import (
@@ -49,30 +73,6 @@ from hydroflow.materials import (
     load_project_config,
     resolve_roughness,
     set_standard,
-)
-
-# ── Pressure pipe flow ──────────────────────────────────────────────
-from hydroflow.pressure import (
-    HydraulicJumpResult,
-    PipeLossResult,
-    darcy_weisbach,
-    hazen_williams,
-    hydraulic_jump,
-    minor_loss,
-)
-
-# ── Routing ─────────────────────────────────────────────────────────
-from hydroflow.routing import DetentionPond, RoutingResult
-
-# ── Structures ──────────────────────────────────────────────────────
-from hydroflow.structures import (
-    BroadCrestedWeir,
-    CompositeOutlet,
-    Culvert,
-    CulvertResult,
-    Orifice,
-    RectangularWeir,
-    VNotchWeir,
 )
 from hydroflow.units import (
     acres,

@@ -10,7 +10,7 @@ import math
 import pytest
 
 import hydroflow as hf
-from hydroflow.structures import (
+from hydroflow.core.structures import (
     BroadCrestedWeir,
     CompositeOutlet,
     Culvert,

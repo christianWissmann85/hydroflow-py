@@ -22,8 +22,8 @@ from hydroflow.units import to_si
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
-    from hydroflow.hydrology import Hydrograph
-    from hydroflow.structures import CompositeOutlet, _Structure
+    from hydroflow.core.hydrology import Hydrograph
+    from hydroflow.core.structures import CompositeOutlet, _Structure
 
 __all__ = [
     "DetentionPond",
@@ -146,7 +146,7 @@ class DetentionPond:
         True
         """
         # Extract inflow array and time step
-        from hydroflow.hydrology import Hydrograph as _Hydrograph
+        from hydroflow.core.hydrology import Hydrograph as _Hydrograph
 
         if isinstance(inflow, _Hydrograph):
             inflow_si = np.asarray(inflow.flows_cms, dtype=np.float64)

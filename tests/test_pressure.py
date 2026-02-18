@@ -10,7 +10,7 @@ import math
 import pytest
 
 import hydroflow as hf
-from hydroflow.pressure import (
+from hydroflow.core.pressure import (
     darcy_weisbach,
     friction_factor,
     hazen_williams,
