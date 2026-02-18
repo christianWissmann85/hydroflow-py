@@ -49,6 +49,11 @@ _base_fittings: dict[str, Any] | None = None
 _std_overlays: dict[str, dict[str, Any]] = {}
 _merged_by_std: dict[str | None, dict[str, Any]] = {}
 
+# ── Firm config cache (loaded once per process) ──────────────────
+
+_firm_config: dict[str, Any] | None = None
+_firm_config_loaded: bool = False  # distinguish "no file" from "not yet checked"
+
 
 # ── Deep merge utility ────────────────────────────────────────────
 
@@ -131,6 +136,7 @@ def set_standard(name: str | None) -> None:
             msg = f"Unknown standard '{name}'. Available: {', '.join(available)}"
             raise ValueError(msg)
     _local.standard = name
+    _local.standard_explicit = True  # user explicitly chose a standard (even None)
     _local.final_db = None  # invalidate cached effective DB
 
 
@@ -186,6 +192,74 @@ def _get_base_with_standard(standard: str | None) -> dict[str, Any]:
     }
     _merged_by_std[standard] = result
     return result
+
+
+# ── Firm config layer ─────────────────────────────────────────────
+
+
+def _find_firm_config() -> Path | None:
+    """Return path to ~/.hydroflow/firm_config.toml if it exists, else None."""
+    try:
+        candidate = Path.home() / ".hydroflow" / "firm_config.toml"
+        if candidate.is_file():
+            return candidate
+    except OSError:
+        pass
+    return None
+
+
+def _load_firm_config() -> dict[str, Any] | None:
+    """Load and cache firm config. Returns None if no file exists."""
+    global _firm_config, _firm_config_loaded
+    if _firm_config_loaded:
+        return _firm_config
+
+    import tomllib
+
+    path = _find_firm_config()
+    if path is not None:
+        raw = path.read_text(encoding="utf-8")
+        config = tomllib.loads(raw)
+        if "hydroflow" in config:
+            _firm_config = config["hydroflow"]
+    _firm_config_loaded = True
+    return _firm_config
+
+
+# ── Config overlay helper ────────────────────────────────────────
+
+
+def _apply_config_overlay(db: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
+    """Apply a config overlay (firm or project) to a materials DB."""
+    mat_overrides = config.get("materials", {})
+    if mat_overrides:
+        db = {
+            "materials": _deep_merge(db["materials"], mat_overrides),
+            "_meta": db["_meta"],
+        }
+
+    alias_overrides = config.get("aliases", {})
+    if alias_overrides:
+        merged_aliases = _deep_merge(db["_meta"].get("aliases", {}), alias_overrides)
+        db = {
+            "materials": db["materials"],
+            "_meta": {**db["_meta"], "aliases": merged_aliases},
+        }
+    return db
+
+
+def _apply_fittings_overlay(
+    db: dict[str, Any], config: dict[str, Any]
+) -> dict[str, Any]:
+    """Apply a config overlay (firm or project) to a fittings DB."""
+    fitting_overrides = config.get("fittings", {})
+    if fitting_overrides:
+        merged_fittings = _deep_merge(db["fittings"], fitting_overrides)
+        db = {
+            "_meta": db["_meta"],
+            "fittings": merged_fittings,
+        }
+    return db
 
 
 # ── Project config layer ──────────────────────────────────────────
@@ -276,7 +350,7 @@ def clear_project_config() -> None:
 
 
 def _get_effective_db() -> dict[str, Any]:
-    """Return fully-merged materials DB: base < standard < project."""
+    """Return fully-merged materials DB: base < standard < firm < project."""
     cached: dict[str, Any] | None = getattr(_local, "final_db", None)
     if cached is not None:
         return cached
@@ -284,42 +358,37 @@ def _get_effective_db() -> dict[str, Any]:
     standard = get_standard()
     db = _get_base_with_standard(standard)
 
+    # Apply firm config (between standard and project)
+    firm = _load_firm_config()
+    if firm is not None:
+        # Apply firm standard only if user never called set_standard()
+        standard_explicit = getattr(_local, "standard_explicit", False)
+        if standard is None and not standard_explicit and "standard" in firm:
+            db = _get_base_with_standard(firm["standard"])
+        db = _apply_config_overlay(db, firm)
+
+    # Apply project config (highest priority)
     project_config: dict[str, Any] | None = getattr(_local, "project_config", None)
     if project_config is not None:
-        # Apply material overrides from project config
-        mat_overrides = project_config.get("materials", {})
-        if mat_overrides:
-            db = {
-                "materials": _deep_merge(db["materials"], mat_overrides),
-                "_meta": db["_meta"],
-            }
-
-        # Apply alias overrides from project config
-        alias_overrides = project_config.get("aliases", {})
-        if alias_overrides:
-            merged_aliases = _deep_merge(db["_meta"].get("aliases", {}), alias_overrides)
-            db = {
-                "materials": db["materials"],
-                "_meta": {**db["_meta"], "aliases": merged_aliases},
-            }
+        db = _apply_config_overlay(db, project_config)
 
     _local.final_db = db
     return db
 
 
 def _get_effective_fittings() -> dict[str, Any]:
-    """Return fittings DB with project config overrides applied."""
+    """Return fittings DB with firm and project config overrides applied."""
     db = _load_fittings()
 
+    # Apply firm config
+    firm = _load_firm_config()
+    if firm is not None:
+        db = _apply_fittings_overlay(db, firm)
+
+    # Apply project config (highest priority)
     project_config: dict[str, Any] | None = getattr(_local, "project_config", None)
     if project_config is not None:
-        fitting_overrides = project_config.get("fittings", {})
-        if fitting_overrides:
-            merged_fittings = _deep_merge(db["fittings"], fitting_overrides)
-            db = {
-                "_meta": db["_meta"],
-                "fittings": merged_fittings,
-            }
+        db = _apply_fittings_overlay(db, project_config)
 
     return db
 
