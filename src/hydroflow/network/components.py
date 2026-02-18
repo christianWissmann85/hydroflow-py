@@ -94,6 +94,7 @@ class Junction:
     name: str
     elevation: float
     base_demand: float = 0.0
+    coordinates: tuple[float, float] | None = None
 
     def __post_init__(self) -> None:
         if not self.name:
@@ -101,11 +102,14 @@ class Junction:
 
     def to_wntr_kwargs(self) -> dict[str, Any]:
         """Keyword arguments for ``wn.add_junction()``."""
-        return {
+        kw: dict[str, Any] = {
             "name": self.name,
             "base_demand": self.base_demand,
             "elevation": self.elevation,
         }
+        if self.coordinates is not None:
+            kw["coordinates"] = self.coordinates
+        return kw
 
 
 @dataclass(frozen=True, slots=True)
@@ -122,6 +126,7 @@ class Reservoir:
 
     name: str
     head: float
+    coordinates: tuple[float, float] | None = None
 
     def __post_init__(self) -> None:
         if not self.name:
@@ -129,10 +134,13 @@ class Reservoir:
 
     def to_wntr_kwargs(self) -> dict[str, Any]:
         """Keyword arguments for ``wn.add_reservoir()``."""
-        return {
+        kw: dict[str, Any] = {
             "name": self.name,
             "base_head": self.head,
         }
+        if self.coordinates is not None:
+            kw["coordinates"] = self.coordinates
+        return kw
 
 
 @dataclass(frozen=True, slots=True)
@@ -161,6 +169,7 @@ class Tank:
     min_level: float
     max_level: float
     diameter: float
+    coordinates: tuple[float, float] | None = None
 
     def __post_init__(self) -> None:
         if not self.name:
@@ -187,7 +196,7 @@ class Tank:
 
     def to_wntr_kwargs(self) -> dict[str, Any]:
         """Keyword arguments for ``wn.add_tank()``."""
-        return {
+        kw: dict[str, Any] = {
             "name": self.name,
             "elevation": self.elevation,
             "init_level": self.init_level,
@@ -195,6 +204,9 @@ class Tank:
             "max_level": self.max_level,
             "diameter": self.diameter,
         }
+        if self.coordinates is not None:
+            kw["coordinates"] = self.coordinates
+        return kw
 
 
 # ── Links ─────────────────────────────────────────────────────────────

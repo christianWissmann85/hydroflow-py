@@ -34,7 +34,7 @@ Issues = "https://github.com/christianWissmann85/hydroflow-py/issues"
 Changelog = "https://github.com/christianWissmann85/hydroflow-py/releases"
 
 [project.optional-dependencies]
-plot = ["matplotlib>=3.6"]
+plot = ["matplotlib>=3.6", "networkx>=3.0"]
 epanet = ["wntr>=1.0"]
 dev = [
     "pytest>=8.0",
@@ -94,7 +94,7 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
-module = ["numpy.*", "scipy.*", "matplotlib.*", "wntr.*", "pandas.*"]
+module = ["numpy.*", "scipy.*", "matplotlib.*", "networkx.*", "wntr.*", "pandas.*"]
 ignore_missing_imports = true
 
 # ── Pytest ────────────────────────────────────────────────────────────

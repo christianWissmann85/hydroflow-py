@@ -18,6 +18,11 @@ _DURATION_RE = re.compile(
     r"^\s*(?P<value>[0-9]*\.?[0-9]+)\s*(?P<unit>[a-zA-Z]+)\s*$"
 )
 
+# Matches clock-time patterns like "22:00", "6:30", "01:15"
+_CLOCK_RE = re.compile(
+    r"^\s*(?P<hours>[0-9]{1,2}):(?P<minutes>[0-9]{2})\s*$"
+)
+
 _UNIT_TO_SECONDS: dict[str, float] = {
     # Seconds
     "s": 1.0,
@@ -51,7 +56,8 @@ def parse_duration(value: str | int | float) -> float:
     ----------
     value : str | int | float
         A human-friendly duration string (e.g. ``"24h"``, ``"15min"``,
-        ``"30s"``, ``"3 days"``) or a numeric value already in seconds.
+        ``"30s"``, ``"3 days"``), a clock-time string (e.g. ``"22:00"``,
+        ``"6:30"``), or a numeric value already in seconds.
 
     Returns
     -------
@@ -73,6 +79,8 @@ def parse_duration(value: str | int | float) -> float:
     30.0
     >>> parse_duration("3 days")
     259200.0
+    >>> parse_duration("22:00")
+    79200.0
     >>> parse_duration(3600)
     3600.0
     """
@@ -82,11 +90,21 @@ def parse_duration(value: str | int | float) -> float:
             raise ValueError(msg)
         return float(value)
 
+    # Try clock-time format first: "22:00", "6:30"
+    clock_match = _CLOCK_RE.match(value)
+    if clock_match:
+        hours = int(clock_match.group("hours"))
+        minutes = int(clock_match.group("minutes"))
+        if hours > 23 or minutes > 59:
+            msg = f"Invalid clock time {value!r}. Hours must be 0-23, minutes 0-59."
+            raise ValueError(msg)
+        return float(hours * 3600 + minutes * 60)
+
     match = _DURATION_RE.match(value)
     if not match:
         msg = (
             f"Cannot parse duration {value!r}. "
-            f"Expected format like '24h', '15min', '30s', or '3 days'."
+            f"Expected format like '24h', '15min', '30s', '3 days', or '22:00'."
         )
         raise ValueError(msg)
 

@@ -104,7 +104,7 @@ The cross-cutting infrastructure that every layer depends on.
 - [x] Unit conversion works transparently (metric/imperial)
 - [x] Material/roughness lookup works for common materials
 - [x] Standards & config hierarchy operational (base < standard < firm < project)
-- [x] Test coverage >90% for all calculation modules (276 tests passing, v0.1.1)
+- [x] Test coverage >90% for all calculation modules (276 tests at v0.1.1)
 
 ---
 
@@ -185,35 +185,49 @@ Layer 0 calculation modules moved into `hydroflow.core/` to make room for `netwo
 - [x] Source reorganized: `core/` for Layer 0, `network/` for Layer 1a
 - [x] 147 new network tests (423 total, up from 276)
 - [x] All ruff + mypy clean
-- [ ] Network visualization (matplotlib, basic but functional) — *deferred to Phase 2.5*
-- [ ] Tutorial notebooks (simple network, tank filling, pump scheduling) — *deferred to Phase 2.5*
+- [x] Network visualization (matplotlib, basic but functional) — *completed in Phase 2.5*
+- [x] Tutorial notebooks (simple network, tank filling, pump scheduling) — *completed in Phase 2.5*
 
 ---
 
-## Phase 2.5: Network Polish & Documentation
+## Phase 2.5: Network Polish & Documentation (Complete)
 
 **Goal:** Visual and educational polish for the network package — matplotlib plotting and guided tutorial notebooks. Low-risk, high-impact work that makes Phase 2 shine before moving on to new solvers.
 
-### Visualization
+### Visualization (Done)
 
-| Deliverable | Description |
-|-------------|-------------|
-| `hydroflow.network.plot` | Basic matplotlib network visualization. Nodes colored by pressure, links colored/sized by velocity or flow. Leverages WNTR's graph layout or simple spring layout. Optional dependency (`hydroflow-py[plot]`). |
+| Deliverable | Description | Status |
+|-------------|-------------|:------:|
+| `hydroflow.network.plot` | Custom matplotlib network visualization. `plot_network()` for topology (nodes by type: squares=reservoirs, diamonds=tanks, circles=junctions) with optional attribute coloring via colormaps. `plot_results()` for simulation results at a given timestep. Spring layout fallback when no coordinates provided. Optional dependency (`hydroflow-py[plot]` = matplotlib + networkx). | Done |
+| Node coordinates | Optional `coordinates: tuple[float, float] \| None` on `Junction`, `Reservoir`, `Tank`. Flows through `to_wntr_kwargs()`, `from_wntr()`, and INP round-trips. | Done |
 
-### Tutorials
+### Tutorials (Done)
 
-| Deliverable | Description |
-|-------------|-------------|
-| Notebook: Simple Network | Build a 3-node gravity-fed network, simulate, inspect pressures and flows. |
-| Notebook: Tank Filling | Tank fills from a reservoir, drains via demand. Demonstrate time-series results and health check. |
-| Notebook: Pump Scheduling | Use `TimeControl` and `ConditionalControl` to schedule a pump. Show before/after comparison. |
+| Deliverable | Description | Status |
+|-------------|-------------|:------:|
+| [`examples/tutorial_simple_network.py`](examples/tutorial_simple_network.py) | Build a 3-node gravity-fed network, simulate 24h, inspect pressures and flows, plot colored by pressure. | Done |
+| [`examples/tutorial_tank_filling.py`](examples/tutorial_tank_filling.py) | Reservoir → pump → tank topology. Tank fills over time. Health check. Plot network. | Done |
+| [`examples/tutorial_pump_scheduling.py`](examples/tutorial_pump_scheduling.py) | `TimeControl` (pump off at 22:00) and `ConditionalControl` (pump on when tank < 2m). Two-scenario comparison with side-by-side plots. | Done |
+
+### WNTR 1.4 Compatibility Fixes (Done)
+
+| Fix | Description | Status |
+|-----|-------------|:------:|
+| `write_inp()` | WNTR 1.4 moved `write_inpfile` from a model method to `wntr.network.write_inpfile(wn, path)`. Updated `io.py`. | Done |
+| `Control.at_time()` | WNTR 1.4 removed `Control.at_time()` class method. Replaced with `Control(SimTimeCondition(...), action)` in `model.py`. | Done |
+| `parse_duration()` clock time | Added `"HH:MM"` clock-time format support (e.g. `"22:00"` → 79200s) to match the `TimeControl.at` API contract. | Done |
+| Reservoir pressure tolerance | EPANET reports a tiny negative pressure (~-1.9e-6 m) at reservoir nodes. Updated test to use `-1e-4` tolerance. | Done |
 
 ### Phase 2.5 Deliverables
 
-- [ ] Network visualization (matplotlib, basic but functional)
-- [ ] Tutorial notebook: simple network
-- [ ] Tutorial notebook: tank filling
-- [ ] Tutorial notebook: pump scheduling
+- [x] Network visualization (matplotlib + networkx, custom plotting)
+- [x] Node coordinates on Junction, Reservoir, Tank
+- [x] Tutorial: simple gravity-fed network
+- [x] Tutorial: tank filling with pump
+- [x] Tutorial: pump scheduling with controls
+- [x] Exports: `plot_network`, `plot_results` in `hydroflow.network.__init__`
+- [x] WNTR 1.4 compatibility fixes (write_inp, controls, time parsing)
+- [x] 496 tests passing (up from 423), 0 failures, ruff + mypy clean
 
 ---
 

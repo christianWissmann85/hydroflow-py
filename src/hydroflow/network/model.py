@@ -122,23 +122,31 @@ class WaterNetwork:
         *,
         elevation: float,
         base_demand: float = 0.0,
+        coordinates: tuple[float, float] | None = None,
     ) -> Junction:
         """Add a demand node.
 
         Returns the created ``Junction``.
         """
         self._check_name_unique(name)
-        j = Junction(name=name, elevation=elevation, base_demand=base_demand)
+        j = Junction(name=name, elevation=elevation, base_demand=base_demand,
+                     coordinates=coordinates)
         self._junctions[name] = j
         return j
 
-    def add_reservoir(self, name: str, *, head: float) -> Reservoir:
+    def add_reservoir(
+        self,
+        name: str,
+        *,
+        head: float,
+        coordinates: tuple[float, float] | None = None,
+    ) -> Reservoir:
         """Add a fixed-head source node.
 
         Returns the created ``Reservoir``.
         """
         self._check_name_unique(name)
-        r = Reservoir(name=name, head=head)
+        r = Reservoir(name=name, head=head, coordinates=coordinates)
         self._reservoirs[name] = r
         return r
 
@@ -151,6 +159,7 @@ class WaterNetwork:
         min_level: float,
         max_level: float,
         diameter: float,
+        coordinates: tuple[float, float] | None = None,
     ) -> Tank:
         """Add a storage tank.
 
@@ -164,6 +173,7 @@ class WaterNetwork:
             min_level=min_level,
             max_level=max_level,
             diameter=diameter,
+            coordinates=coordinates,
         )
         self._tanks[name] = t
         return t
@@ -440,9 +450,10 @@ class WaterNetwork:
             action = wntr.network.controls.ControlAction(
                 link, "status", ctrl["status_code"]
             )
-            control = wntr.network.controls.Control.at_time(
-                wn, ctrl["at_seconds"], action
+            condition = wntr.network.controls.SimTimeCondition(
+                wn, wntr.network.controls.Comparison.ge, ctrl["at_seconds"]
             )
+            control = wntr.network.controls.Control(condition, action)
             wn.add_control(ctrl["control_name"], control)
         elif ctrl["type"] == "conditional":
             link = wn.get_link(ctrl["link_name"])

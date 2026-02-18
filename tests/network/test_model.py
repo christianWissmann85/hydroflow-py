@@ -41,6 +41,18 @@ class TestAddJunction:
             net.add_junction("J1", elevation=200.0)
 
 
+class TestAddJunctionCoordinates:
+    def test_with_coordinates(self) -> None:
+        net = WaterNetwork()
+        j = net.add_junction("J1", elevation=100.0, coordinates=(10.0, 20.0))
+        assert j.coordinates == (10.0, 20.0)
+
+    def test_default_no_coordinates(self) -> None:
+        net = WaterNetwork()
+        j = net.add_junction("J1", elevation=100.0)
+        assert j.coordinates is None
+
+
 class TestAddReservoir:
     def test_basic(self) -> None:
         net = WaterNetwork()

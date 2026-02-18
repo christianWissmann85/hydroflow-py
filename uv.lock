@@ -276,6 +276,7 @@ dependencies = [
 all = [
     { name = "matplotlib" },
     { name = "mypy" },
+    { name = "networkx" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "ruff" },
@@ -292,6 +293,7 @@ epanet = [
 ]
 plot = [
     { name = "matplotlib" },
+    { name = "networkx" },
 ]
 
 [package.metadata]
@@ -299,6 +301,7 @@ requires-dist = [
     { name = "hydroflow-py", extras = ["plot", "dev", "epanet"], marker = "extra == 'all'" },
     { name = "matplotlib", marker = "extra == 'plot'", specifier = ">=3.6" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.13" },
+    { name = "networkx", marker = "extra == 'plot'", specifier = ">=3.0" },
     { name = "numpy", specifier = ">=1.24" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0" },

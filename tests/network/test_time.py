@@ -68,6 +68,30 @@ class TestParseDuration:
     def test_space_between_value_and_unit(self) -> None:
         assert parse_duration("10 min") == 600.0
 
+    # ── Clock-time format ─────────────────────────────────────────────
+    def test_clock_time_22_00(self) -> None:
+        assert parse_duration("22:00") == 79200.0
+
+    def test_clock_time_6_30(self) -> None:
+        assert parse_duration("6:30") == 23400.0
+
+    def test_clock_time_00_00(self) -> None:
+        assert parse_duration("00:00") == 0.0
+
+    def test_clock_time_01_15(self) -> None:
+        assert parse_duration("01:15") == 4500.0
+
+    def test_clock_time_with_spaces(self) -> None:
+        assert parse_duration("  12:00  ") == 43200.0
+
+    def test_clock_time_invalid_hours_raises(self) -> None:
+        with pytest.raises(ValueError, match="Invalid clock time"):
+            parse_duration("25:00")
+
+    def test_clock_time_invalid_minutes_raises(self) -> None:
+        with pytest.raises(ValueError, match="Invalid clock time"):
+            parse_duration("12:60")
+
     # ── Error cases ───────────────────────────────────────────────────
     def test_unknown_unit_raises(self) -> None:
         with pytest.raises(ValueError, match="Unknown time unit"):

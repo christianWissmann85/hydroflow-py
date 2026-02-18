@@ -98,6 +98,21 @@ class TestWriteInp:
         assert set(net2.link_names) == set(net1.link_names)
 
 
+class TestCoordinatesRoundTrip:
+    def test_coordinates_preserved_on_round_trip(self, tmp_path: Path) -> None:
+        """Coordinates survive write_inp -> read_inp round-trip."""
+        net = WaterNetwork("Coords Test")
+        net.add_reservoir("R1", head=125.0, coordinates=(0.0, 0.0))
+        net.add_junction("J1", elevation=100.0, coordinates=(100.0, 50.0))
+        net.add_pipe("P1", "R1", "J1", length=500.0, diameter=0.3, roughness=130.0)
+        out = tmp_path / "coords.inp"
+        write_inp(net, out)
+        net2 = read_inp(out)
+        assert net2.junctions["J1"].coordinates is not None
+        assert net2.junctions["J1"].coordinates[0] == pytest.approx(100.0)
+        assert net2.junctions["J1"].coordinates[1] == pytest.approx(50.0)
+
+
 class TestFromWntr:
     def test_converts_model(self) -> None:
         wn = wntr.network.WaterNetworkModel(str(SIMPLE_INP))

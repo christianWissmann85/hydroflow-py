@@ -59,14 +59,20 @@ def from_wntr(wn: Any) -> WaterNetwork:
 
     # Junctions
     for name, node in wn.junctions():
-        net.add_junction(name, elevation=node.elevation, base_demand=node.base_demand)
+        coords = tuple(node.coordinates) if node.coordinates else None
+        net.add_junction(
+            name, elevation=node.elevation, base_demand=node.base_demand,
+            coordinates=coords,
+        )
 
     # Reservoirs
     for name, node in wn.reservoirs():
-        net.add_reservoir(name, head=node.base_head)
+        coords = tuple(node.coordinates) if node.coordinates else None
+        net.add_reservoir(name, head=node.base_head, coordinates=coords)
 
     # Tanks
     for name, node in wn.tanks():
+        coords = tuple(node.coordinates) if node.coordinates else None
         net.add_tank(
             name,
             elevation=node.elevation,
@@ -74,6 +80,7 @@ def from_wntr(wn: Any) -> WaterNetwork:
             min_level=node.min_level,
             max_level=node.max_level,
             diameter=node.diameter,
+            coordinates=coords,
         )
 
     # Pipes
@@ -141,5 +148,6 @@ def write_inp(network: WaterNetwork, path: str | Path) -> None:
     path : str or Path
         Destination file path.
     """
+    wntr = _import_wntr()
     wn = network._to_wntr()
-    wn.write_inpfile(str(path))
+    wntr.network.write_inpfile(wn, str(path))

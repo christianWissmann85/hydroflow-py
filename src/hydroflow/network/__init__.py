@@ -22,6 +22,7 @@ from hydroflow.network.errors import (
     ValidationError,
 )
 from hydroflow.network.model import WaterNetwork
+from hydroflow.network.plot import plot_network, plot_results
 
 __all__ = [
     # Model
@@ -36,6 +37,9 @@ __all__ = [
     # Controls
     "TimeControl",
     "ConditionalControl",
+    # Plotting
+    "plot_network",
+    "plot_results",
     # Errors
     "ComponentError",
     "NetworkError",

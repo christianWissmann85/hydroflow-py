@@ -69,10 +69,14 @@ class TestSimulate:
         assert isinstance(results, NetworkResults)
 
     def test_pressures_are_positive(self) -> None:
-        """For this simple gravity-fed network, pressures should be positive."""
+        """For this simple gravity-fed network, pressures should be non-negative.
+
+        Reservoir nodes may report a tiny negative pressure (~1e-6) due to
+        EPANET floating-point arithmetic, so we allow a small tolerance.
+        """
         net = _simple_network()
         results = simulate(net, duration="2h", timestep="1h")
-        assert (results.pressures >= 0).all().all()
+        assert (results.pressures >= -1e-4).all().all()
 
     def test_heads_present(self) -> None:
         net = _simple_network()

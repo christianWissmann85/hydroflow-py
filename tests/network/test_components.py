@@ -47,6 +47,24 @@ class TestJunction:
         assert kw["elevation"] == 100.0
         assert kw["base_demand"] == 0.01
 
+    def test_coordinates_default_none(self) -> None:
+        j = Junction("J1", elevation=100.0)
+        assert j.coordinates is None
+
+    def test_coordinates_stored(self) -> None:
+        j = Junction("J1", elevation=100.0, coordinates=(10.0, 20.0))
+        assert j.coordinates == (10.0, 20.0)
+
+    def test_coordinates_in_wntr_kwargs(self) -> None:
+        j = Junction("J1", elevation=100.0, coordinates=(10.0, 20.0))
+        kw = j.to_wntr_kwargs()
+        assert kw["coordinates"] == (10.0, 20.0)
+
+    def test_coordinates_omitted_when_none(self) -> None:
+        j = Junction("J1", elevation=100.0)
+        kw = j.to_wntr_kwargs()
+        assert "coordinates" not in kw
+
 
 # ── Reservoir ─────────────────────────────────────────────────────────
 
@@ -71,6 +89,15 @@ class TestReservoir:
         kw = r.to_wntr_kwargs()
         assert kw["name"] == "R1"
         assert kw["base_head"] == 125.0
+
+    def test_coordinates_stored(self) -> None:
+        r = Reservoir("R1", head=125.0, coordinates=(5.0, 15.0))
+        assert r.coordinates == (5.0, 15.0)
+
+    def test_coordinates_in_wntr_kwargs(self) -> None:
+        r = Reservoir("R1", head=125.0, coordinates=(5.0, 15.0))
+        kw = r.to_wntr_kwargs()
+        assert kw["coordinates"] == (5.0, 15.0)
 
 
 # ── Tank ──────────────────────────────────────────────────────────────
@@ -134,6 +161,11 @@ class TestTank:
         assert kw["min_level"] == 0.5
         assert kw["max_level"] == 5.0
         assert kw["diameter"] == 10.0
+
+    def test_coordinates_stored(self) -> None:
+        t = Tank("T1", elevation=50.0, init_level=3.0, min_level=0.5,
+                 max_level=5.0, diameter=10.0, coordinates=(30.0, 40.0))
+        assert t.coordinates == (30.0, 40.0)
 
 
 # ── Pipe ──────────────────────────────────────────────────────────────
