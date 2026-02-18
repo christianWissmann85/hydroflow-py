@@ -9,5 +9,12 @@ wheels/
 # Virtual environments
 .venv
 
+# Other Python Stuff
+.coverage
+.mypy_cache
+.pytest_cache
+.ruff_cache
+
 # Misc.
 hydroflow-chat.md
+.claude

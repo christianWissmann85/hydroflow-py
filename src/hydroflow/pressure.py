@@ -14,7 +14,9 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from typing import Any
 
+from hydroflow.materials import _resolve_hazen_williams, _resolve_minor_loss
 from hydroflow.units import from_si, to_si
 
 __all__ = [
@@ -23,45 +25,9 @@ __all__ = [
     "hazen_williams",
     "minor_loss",
     "hydraulic_jump",
-    "MINOR_LOSS_K",
 ]
 
 _G = 9.80665
-
-# ── Minor loss coefficients (standard values) ───────────────────────
-MINOR_LOSS_K: dict[str, float] = {
-    "entrance_sharp": 0.5,
-    "entrance_rounded": 0.2,
-    "entrance_projecting": 0.8,
-    "exit": 1.0,
-    "90_elbow": 0.9,
-    "90_elbow_long": 0.6,
-    "45_elbow": 0.4,
-    "tee_through": 0.6,
-    "tee_branch": 1.8,
-    "gate_valve_open": 0.2,
-    "gate_valve_half": 5.6,
-    "check_valve": 2.5,
-    "butterfly_valve": 0.3,
-    "sudden_expansion": 1.0,
-    "sudden_contraction": 0.5,
-}
-
-# ── Hazen-Williams C values for common materials ────────────────────
-HAZEN_WILLIAMS_C: dict[str, float] = {
-    "pvc": 150.0,
-    "hdpe": 150.0,
-    "copper": 140.0,
-    "ductile_iron_new": 140.0,
-    "ductile_iron_old": 100.0,
-    "cast_iron_new": 130.0,
-    "cast_iron_old": 80.0,
-    "steel_new": 140.0,
-    "steel_riveted": 110.0,
-    "concrete": 130.0,
-    "asbestos_cement": 140.0,
-    "galvanized_iron": 120.0,
-}
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -226,7 +192,7 @@ def hazen_williams(
         Pipe length (active length units).
     C : float or str
         Hazen-Williams coefficient. If a string, looked up from
-        ``HAZEN_WILLIAMS_C`` (e.g. ``"pvc"`` -> 150).
+        the material database (e.g. ``"pvc"`` -> 150).
 
     Returns
     -------
@@ -249,15 +215,7 @@ def hazen_williams(
     D_si = to_si(diameter, "length")
     L_si = to_si(length, "length")
 
-    if isinstance(C, str):
-        key = C.lower().strip()
-        if key not in HAZEN_WILLIAMS_C:
-            valid = ", ".join(f"'{k}'" for k in HAZEN_WILLIAMS_C)
-            msg = f"Unknown material '{C}'. Available: {valid}"
-            raise ValueError(msg)
-        C_val = HAZEN_WILLIAMS_C[key]
-    else:
-        C_val = C
+    C_val = _resolve_hazen_williams(C)
 
     hf = float(
         10.67 * Q_si**1.852 * L_si / (C_val**1.852 * D_si**4.87)
@@ -281,8 +239,8 @@ def minor_loss(
     velocity : float
         Flow velocity (active velocity units).
     K : float or str
-        Loss coefficient. If a string, looked up from ``MINOR_LOSS_K``
-        (e.g. ``"90_elbow"`` -> 0.9).
+        Loss coefficient. If a string, looked up from the fitting
+        database (e.g. ``"90_elbow"`` -> 0.9).
 
     Returns
     -------
@@ -299,15 +257,7 @@ def minor_loss(
     """
     V_si = to_si(velocity, "velocity")
 
-    if isinstance(K, str):
-        key = K.lower().strip()
-        if key not in MINOR_LOSS_K:
-            valid = ", ".join(f"'{k}'" for k in MINOR_LOSS_K)
-            msg = f"Unknown fitting '{K}'. Available: {valid}"
-            raise ValueError(msg)
-        K_val = MINOR_LOSS_K[key]
-    else:
-        K_val = K
+    K_val = _resolve_minor_loss(K)
 
     hm = K_val * V_si**2 / (2.0 * _G)
     return from_si(hm, "length")
@@ -396,3 +346,16 @@ def hydraulic_jump(
         froude_upstream=Fr1,
         froude_downstream=Fr2,
     )
+
+
+# ── Lazy backwards-compat access to removed dicts ────────────────────
+
+def __getattr__(name: str) -> Any:
+    from hydroflow import materials as _mat
+
+    if name == "HAZEN_WILLIAMS_C":
+        return _mat.HAZEN_WILLIAMS_C
+    if name == "MINOR_LOSS_K":
+        return _mat.MINOR_LOSS_K
+    msg = f"module {__name__!r} has no attribute {name!r}"
+    raise AttributeError(msg)

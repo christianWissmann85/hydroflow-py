@@ -115,7 +115,6 @@ These are the most fundamental calculations in hydraulic engineering. Every othe
 - [ ] Unit conversion works transparently (metric/imperial)
 - [ ] Material/roughness lookup works for common materials
 - [ ] Test coverage >90% for all calculation modules
-- [ ] CI pipeline (GitHub Actions): tests + linting + type checking
 
 ---
 

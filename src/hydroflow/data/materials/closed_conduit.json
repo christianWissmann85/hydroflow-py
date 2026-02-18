@@ -1,0 +1,166 @@
+{
+  "concrete": {
+    "category": "closed_conduit",
+    "description": "Standard concrete pipe",
+    "manning_n": {"default": 0.013, "range": [0.011, 0.017], "source": "chow_1959"},
+    "hazen_williams_c": {"default": 130, "range": [100, 140], "source": "brater_king_1976"},
+    "darcy_epsilon_mm": {"default": 0.3, "range": [0.3, 3.0], "source": "moody_1944"},
+    "conditions": {
+      "new_smooth": {
+        "manning_n": 0.012,
+        "hazen_williams_c": 140,
+        "darcy_epsilon_mm": 0.3
+      },
+      "old_rough": {
+        "manning_n": 0.016,
+        "hazen_williams_c": 100,
+        "darcy_epsilon_mm": 1.5
+      }
+    }
+  },
+  "corrugated_metal": {
+    "category": "closed_conduit",
+    "description": "Corrugated metal pipe (CMP)",
+    "manning_n": {"default": 0.024, "range": [0.020, 0.030], "source": "fhwa_hec22_2009"},
+    "darcy_epsilon_mm": {"default": 6.0, "range": [3.0, 12.0], "source": "moody_1944"},
+    "conditions": {
+      "paved_invert": {
+        "manning_n": 0.020,
+        "darcy_epsilon_mm": 3.0
+      }
+    }
+  },
+  "hdpe": {
+    "category": "closed_conduit",
+    "description": "High-density polyethylene pipe",
+    "manning_n": {"default": 0.012, "range": [0.009, 0.015], "source": "fhwa_hec22_2009"},
+    "hazen_williams_c": {"default": 150, "range": [140, 155], "source": "brater_king_1976"},
+    "darcy_epsilon_mm": {"default": 0.007, "range": [0.005, 0.01], "source": "moody_1944"},
+    "conditions": {
+      "smooth": {
+        "manning_n": 0.011,
+        "hazen_williams_c": 155,
+        "darcy_epsilon_mm": 0.005
+      }
+    }
+  },
+  "pvc": {
+    "category": "closed_conduit",
+    "description": "Polyvinyl chloride pipe",
+    "manning_n": {"default": 0.010, "range": [0.009, 0.011], "source": "fhwa_hec22_2009"},
+    "hazen_williams_c": {"default": 150, "range": [140, 155], "source": "brater_king_1976"},
+    "darcy_epsilon_mm": {"default": 0.0015, "range": [0.0015, 0.01], "source": "moody_1944"}
+  },
+  "cast_iron": {
+    "category": "closed_conduit",
+    "description": "Cast iron pipe",
+    "manning_n": {"default": 0.013, "range": [0.011, 0.015], "source": "chow_1959"},
+    "hazen_williams_c": {"default": 130, "range": [80, 130], "source": "brater_king_1976"},
+    "darcy_epsilon_mm": {"default": 0.26, "range": [0.26, 1.0], "source": "moody_1944"},
+    "conditions": {
+      "new": {
+        "manning_n": 0.012,
+        "hazen_williams_c": 130,
+        "darcy_epsilon_mm": 0.26
+      },
+      "old": {
+        "manning_n": 0.015,
+        "hazen_williams_c": 80,
+        "darcy_epsilon_mm": 1.0
+      }
+    }
+  },
+  "ductile_iron": {
+    "category": "closed_conduit",
+    "description": "Ductile iron pipe",
+    "manning_n": {"default": 0.013, "range": [0.011, 0.015], "source": "awwa_c150_2002"},
+    "hazen_williams_c": {"default": 140, "range": [100, 140], "source": "awwa_c150_2002"},
+    "darcy_epsilon_mm": {"default": 0.26, "range": [0.12, 1.0], "source": "moody_1944"},
+    "conditions": {
+      "cement_lined": {
+        "manning_n": 0.012,
+        "hazen_williams_c": 140,
+        "darcy_epsilon_mm": 0.12
+      },
+      "unlined": {
+        "manning_n": 0.014,
+        "hazen_williams_c": 100,
+        "darcy_epsilon_mm": 1.0
+      }
+    }
+  },
+  "steel": {
+    "category": "closed_conduit",
+    "description": "Steel pipe",
+    "manning_n": {"default": 0.012, "range": [0.010, 0.017], "source": "chow_1959"},
+    "hazen_williams_c": {"default": 140, "range": [110, 145], "source": "awwa_m11_2004"},
+    "darcy_epsilon_mm": {"default": 0.045, "range": [0.045, 0.9], "source": "moody_1944"},
+    "conditions": {
+      "new": {
+        "manning_n": 0.011,
+        "hazen_williams_c": 140,
+        "darcy_epsilon_mm": 0.045
+      },
+      "riveted": {
+        "manning_n": 0.017,
+        "hazen_williams_c": 110,
+        "darcy_epsilon_mm": 0.9
+      }
+    }
+  },
+  "clay_tile": {
+    "category": "closed_conduit",
+    "description": "Vitrified clay tile pipe",
+    "manning_n": {"default": 0.014, "range": [0.011, 0.017], "source": "chow_1959"},
+    "hazen_williams_c": {"default": 110, "range": [100, 120], "source": "brater_king_1976"},
+    "darcy_epsilon_mm": {"default": 0.3, "range": [0.15, 0.6], "source": "moody_1944"}
+  },
+  "brick": {
+    "category": "closed_conduit",
+    "description": "Brick sewer or conduit",
+    "manning_n": {"default": 0.016, "range": [0.012, 0.018], "source": "chow_1959"},
+    "darcy_epsilon_mm": {"default": 0.6, "range": [0.6, 6.0], "source": "moody_1944"}
+  },
+  "copper": {
+    "category": "closed_conduit",
+    "description": "Copper tubing",
+    "manning_n": {"default": 0.011, "range": [0.010, 0.013], "source": "brater_king_1976"},
+    "hazen_williams_c": {"default": 140, "range": [130, 145], "source": "brater_king_1976"},
+    "darcy_epsilon_mm": {"default": 0.0015, "range": [0.0015, 0.003], "source": "moody_1944"}
+  },
+  "asbestos_cement": {
+    "category": "closed_conduit",
+    "description": "Asbestos cement pipe (Transite)",
+    "manning_n": {"default": 0.011, "range": [0.010, 0.013], "source": "brater_king_1976"},
+    "hazen_williams_c": {"default": 140, "range": [130, 145], "source": "brater_king_1976"},
+    "darcy_epsilon_mm": {"default": 0.03, "range": [0.015, 0.06], "source": "moody_1944"}
+  },
+  "galvanized_iron": {
+    "category": "closed_conduit",
+    "description": "Galvanized iron pipe",
+    "manning_n": {"default": 0.016, "range": [0.013, 0.017], "source": "brater_king_1976"},
+    "hazen_williams_c": {"default": 120, "range": [100, 130], "source": "brater_king_1976"},
+    "darcy_epsilon_mm": {"default": 0.15, "range": [0.06, 0.25], "source": "moody_1944"}
+  },
+  "fiberglass": {
+    "category": "closed_conduit",
+    "description": "Fiberglass reinforced plastic (FRP) pipe",
+    "manning_n": {"default": 0.009, "range": [0.008, 0.012], "source": "brater_king_1976"},
+    "hazen_williams_c": {"default": 150, "range": [140, 155], "source": "brater_king_1976"},
+    "darcy_epsilon_mm": {"default": 0.005, "range": [0.003, 0.01], "source": "moody_1944"}
+  },
+  "brass": {
+    "category": "closed_conduit",
+    "description": "Brass pipe or tubing",
+    "manning_n": {"default": 0.011, "range": [0.009, 0.013], "source": "brater_king_1976"},
+    "hazen_williams_c": {"default": 140, "range": [130, 145], "source": "brater_king_1976"},
+    "darcy_epsilon_mm": {"default": 0.0015, "range": [0.0015, 0.003], "source": "moody_1944"}
+  },
+  "stainless_steel": {
+    "category": "closed_conduit",
+    "description": "Stainless steel pipe",
+    "manning_n": {"default": 0.010, "range": [0.009, 0.012], "source": "brater_king_1976"},
+    "hazen_williams_c": {"default": 145, "range": [140, 150], "source": "brater_king_1976"},
+    "darcy_epsilon_mm": {"default": 0.015, "range": [0.005, 0.03], "source": "moody_1944"}
+  }
+}

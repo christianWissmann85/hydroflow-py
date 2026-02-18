@@ -1,0 +1,9 @@
+{
+  "name": "DIN EN",
+  "description": "German/European standards for hydraulic engineering (DIN EN 752, DIN EN 1916, DWA-A 110).",
+  "references": [
+    "DIN EN 752:2017 — Drain and sewer systems outside buildings — Sewer system management",
+    "DIN EN 1916:2002 — Concrete pipes and fittings, unreinforced, steel fibre and reinforced",
+    "DWA-A 110:2006 — Hydraulic dimensioning and verification of drain and sewer systems"
+  ]
+}

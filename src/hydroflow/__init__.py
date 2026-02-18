@@ -5,8 +5,15 @@ From Excel to elegant code.
 
 from __future__ import annotations
 
+from typing import Any
+
 # ── Foundation ────────────────────────────────────────────────────────
-from hydroflow._types import FlowRegime, SectionProperties
+from hydroflow._types import (
+    FittingProperties,
+    FlowRegime,
+    MaterialProperties,
+    SectionProperties,
+)
 
 # ── Layer 0: Channels ────────────────────────────────────────────────
 from hydroflow.channels import (
@@ -29,12 +36,23 @@ from hydroflow.hydrology import (
     scs_unit_hydrograph,
     time_of_concentration,
 )
-from hydroflow.materials import MANNING_ROUGHNESS, resolve_roughness
+
+# ── Materials (functions load lazily from JSON) ──────────────────────
+from hydroflow.materials import (
+    clear_project_config,
+    get_fitting,
+    get_material,
+    get_standard,
+    list_fittings,
+    list_materials,
+    list_standards,
+    load_project_config,
+    resolve_roughness,
+    set_standard,
+)
 
 # ── Pressure pipe flow ──────────────────────────────────────────────
 from hydroflow.pressure import (
-    HAZEN_WILLIAMS_C,
-    MINOR_LOSS_K,
     HydraulicJumpResult,
     PipeLossResult,
     darcy_weisbach,
@@ -88,8 +106,19 @@ __all__ = [
     # Types
     "FlowRegime",
     "SectionProperties",
+    "MaterialProperties",
+    "FittingProperties",
     # Materials
     "resolve_roughness",
+    "get_material",
+    "get_fitting",
+    "list_materials",
+    "list_fittings",
+    "set_standard",
+    "get_standard",
+    "list_standards",
+    "load_project_config",
+    "clear_project_config",
     "MANNING_ROUGHNESS",
     # Channels
     "TrapezoidalChannel",
@@ -132,3 +161,16 @@ __all__ = [
 ]
 
 __version__ = "0.1.0"
+
+
+# ── Lazy proxy for deprecated dict constants ─────────────────────────
+_DEPRECATED_DICTS = {"MANNING_ROUGHNESS", "HAZEN_WILLIAMS_C", "MINOR_LOSS_K"}
+
+
+def __getattr__(name: str) -> Any:
+    if name in _DEPRECATED_DICTS:
+        from hydroflow import materials as _mat
+
+        return getattr(_mat, name)
+    msg = f"module {__name__!r} has no attribute {name!r}"
+    raise AttributeError(msg)

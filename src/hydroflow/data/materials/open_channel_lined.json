@@ -1,0 +1,37 @@
+{
+  "concrete_trowel": {
+    "category": "open_channel_lined",
+    "description": "Trowel-finished concrete channel lining",
+    "manning_n": {"default": 0.013, "range": [0.011, 0.015], "source": "chow_1959"}
+  },
+  "concrete_float": {
+    "category": "open_channel_lined",
+    "description": "Float-finished concrete channel lining",
+    "manning_n": {"default": 0.015, "range": [0.013, 0.017], "source": "chow_1959"}
+  },
+  "asphalt_smooth": {
+    "category": "open_channel_lined",
+    "description": "Smooth asphalt channel lining",
+    "manning_n": {"default": 0.013, "range": [0.011, 0.015], "source": "chow_1959"}
+  },
+  "riprap": {
+    "category": "open_channel_lined",
+    "description": "Riprap-lined channel",
+    "manning_n": {"default": 0.035, "range": [0.025, 0.045], "source": "chow_1959"}
+  },
+  "gabion": {
+    "category": "open_channel_lined",
+    "description": "Gabion-lined channel",
+    "manning_n": {"default": 0.028, "range": [0.025, 0.035], "source": "chow_1959"}
+  },
+  "concrete_unfinished": {
+    "category": "open_channel_lined",
+    "description": "Unfinished concrete channel lining",
+    "manning_n": {"default": 0.017, "range": [0.014, 0.020], "source": "chow_1959"}
+  },
+  "shotcrete": {
+    "category": "open_channel_lined",
+    "description": "Shotcrete-lined channel",
+    "manning_n": {"default": 0.016, "range": [0.013, 0.019], "source": "chow_1959"}
+  }
+}

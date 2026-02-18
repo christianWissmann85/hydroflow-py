@@ -1,0 +1,21 @@
+{
+  "concrete_smooth": {"material": "concrete", "condition": "new_smooth"},
+  "concrete_rough": {"material": "concrete", "condition": "old_rough"},
+  "corrugated_metal_paved_invert": {"material": "corrugated_metal", "condition": "paved_invert"},
+  "hdpe_smooth": {"material": "hdpe", "condition": "smooth"},
+  "steel_riveted": {"material": "steel", "condition": "riveted"},
+  "ductile_iron_new": {"material": "ductile_iron", "condition": "cement_lined"},
+  "ductile_iron_old": {"material": "ductile_iron", "condition": "unlined"},
+  "cast_iron_new": {"material": "cast_iron", "condition": "new"},
+  "cast_iron_old": {"material": "cast_iron", "condition": "old"},
+  "steel_new": {"material": "steel", "condition": "new"},
+  "earth_clean": {"material": "earth", "condition": "clean"},
+  "earth_weedy": {"material": "earth", "condition": "weedy"},
+  "earth_gravelly": {"material": "earth", "condition": "gravelly"},
+  "natural_clean": {"material": "natural_channel", "condition": "clean"},
+  "natural_weedy": {"material": "natural_channel", "condition": "weedy"},
+  "natural_heavy_brush": {"material": "natural_channel", "condition": "heavy_brush"},
+  "floodplain_grass": {"material": "floodplain", "condition": "grass"},
+  "floodplain_light_brush": {"material": "floodplain", "condition": "light_brush"},
+  "floodplain_heavy_trees": {"material": "floodplain", "condition": "heavy_trees"}
+}
